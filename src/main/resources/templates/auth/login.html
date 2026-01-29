@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="icon" type="image/png" th:href="@{/img/icons/logo-fl.png}">
+    <link rel="stylesheet" th:href="@{/css/login.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <main>
+        <div class="box">
+            <div class="inner-box">
+                <div class="forms-wrap">
+                    <form action="/login" method="post" class="sign-in-form">
+                        <div class="logo">
+                            <img src="/img/logo-fitnesslife.png" alt="Logo">
+                        </div>
+
+                        <div class="heading">
+                            <h2>Bienvenido/a!</h2>
+                            <h6>¿Aún no estás registrado?</h6>
+                            <a href="#" class="toggle">Registrarse</a>
+                        </div>
+
+                        <div class="actual-form">
+                            <div class="input-wrap">
+                                <input type="email" name="email" minlength="4" class="input-field" autocomplete="email"
+                                    required>
+                                <label>Email</label>
+                            </div>
+                            <div class="input-wrap">
+                                <input type="password" name="password" minlength="4" class="input-field"
+                                    autocomplete="current-password" required>
+                                <label>Contraseña</label>
+                            </div>
+                            <input type="submit" value="Iniciar sesión" class="sign-btn">
+                            <p class="text">
+                                ¿Olvidaste tu contraseña?
+                                <a href="#">Obtén ayuda</a> para iniciar sesión
+                            </p>
+                        </div>
+                    </form>
+
+                    <form action="/register" method="post" class="sign-up-form">
+                        <div class="logo">
+                            <img src="/img/logo-fitnesslife.png" alt="Logo">
+                        </div>
+
+                        <div class="heading">
+                            <h2>Únete ahora!</h2>
+                            <h6>¿Ya tienes una cuenta?</h6>
+                            <a href="#" class="toggle">Iniciar sesión</a>
+                        </div>
+
+                        <div class="actual-form mt-5">
+                            <div class="input-wrap">
+                                <input type="text" name="name" class="input-field" required>
+                                <label>Nombre</label>
+                            </div>
+                            <div class="input-wrap">
+                                <input type="text" name="lastname" class="input-field" required>
+                                <label>Apellido</label>
+                            </div>
+                            <div class="input-wrap">
+                                <input type="text" name="identification" class="input-field" autocomplete="off"
+                                    pattern="[0-9]*" inputmode="numeric" required>
+                                <label>Identificación</label>
+                            </div>
+                            <div class="input-wrap">
+                                <input type="email" name="email" class="input-field" autocomplete="email" required>
+                                <label>Email</label>
+                            </div>
+                            <div class="input-wrap">
+                                <input type="password" name="password" class="input-field" autocomplete="new-password"
+                                    required>
+                                <label>Contraseña</label>
+                            </div>
+                            <input type="submit" value="Registrarse" class="sign-btn">
+                            <p class="text">
+                                Al registrarte, aceptas nuestros <a href="#">términos y condiciones</a>.
+                            </p>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="carousel">
+                    <div class="carousel-wrapper">
+                        <img src="/img/carousel1.jpg" alt="Imagen 1" class="image img-1 show">
+                        <img src="/img/carousel2.jpg" alt="Imagen 2" class="image img-2">
+                        <img src="/img/carousel3.jpg" alt="Imagen 3" class="image img-3">
+                    </div>
+
+                    <div class="bullets">
+                        <span class="active" data-value="1"></span>
+                        <span data-value="2"></span>
+                        <span data-value="3"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script th:src="@{/js/login-ui.js}"></script>
+    <script th:src="@{/js/form-validation.js}"></script>
+</body>
+
+</html>
