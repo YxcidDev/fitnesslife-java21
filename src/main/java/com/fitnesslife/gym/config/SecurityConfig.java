@@ -27,7 +27,7 @@ public class SecurityConfig {
                                 "/", "/index", "/login", "/register",
                                 "/css/**", "/js/**", "/img/**", "/fonts/**",
                                 "/payment/confirmation", "/payment/response",
-                                "/api/payment/status/**", "/ws/**")
+                                "/api/payment/status/**", "/ws/**", "/api/password/**")
                         .permitAll()
 
                         .requestMatchers("/dashboard/**", "/admin/**").hasRole("ADMIN")
