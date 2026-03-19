@@ -35,7 +35,7 @@ select {
 }
 
 body {
-    background: var(--bg-body);
+    background: var(--bg-body) !important;
 }
 
 main {
@@ -165,7 +165,7 @@ form.sign-up-form {
     transition: 0.4s;
 }
 
-label {
+.input-wrap label {
     position: absolute;
     left: 0;
     top: 50%;
@@ -328,6 +328,98 @@ main.sign-up-mode .carousel {
 
 .form__message-success-active {
     display: block;
+}
+
+.form-control::placeholder {
+    color: #d3d3d3 !important;
+    opacity: 1 !important;
+}
+
+main .mt-5 {
+    margin-top: 0 !important;
+}
+
+main .text {
+    margin-top: -16px;
+}
+
+#modalPasswordReset .modal-content {
+    background: #323333;
+    border: 1px solid #444;
+    border-radius: 8px;
+}
+
+#modalPasswordReset .modal-title {
+    color: #fff;
+    font-family: 'Montserrat', sans-serif;
+}
+
+#modalPasswordReset .text-muted-custom {
+    color: #d3d3d3;
+    font-size: 0.85rem;
+    margin-bottom: 1.2rem;
+}
+
+#modalPasswordReset .label-custom {
+    color: #d3d3d3;
+    font-size: 0.8rem;
+    margin-bottom: 0.4rem;
+    display: block;
+}
+
+#modalPasswordReset .input-custom {
+    background: #1d1b1a;
+    border: 1px solid #555;
+    color: #fff;
+    border-radius: 4px;
+}
+
+#modalPasswordReset .input-otp {
+    color: var(--primary-color);
+    font-size: 1.4rem;
+    letter-spacing: 8px;
+    text-align: center;
+    font-weight: bold;
+}
+
+#modalPasswordReset .btn-primary-custom {
+    background: var(--primary-color);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: background 0.3s;
+    border: none;
+    color: #fff;
+}
+
+#modalPasswordReset .btn-primary-custom:hover {
+    background: #c75006;
+}
+
+#modalPasswordReset .btn-secondary-custom {
+    background: #444;
+    color: #d3d3d3;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background 0.3s;
+    border: none;
+}
+
+#modalPasswordReset .btn-secondary-custom:hover {
+    background: #555;
+}
+
+#modalPasswordReset .btn-final {
+    background: var(--primary-color);
+    border-radius: 4px;
+    font-size: 0.9rem;
+    border: none;
+    color: #fff;
+}
+
+#modalPasswordReset .hidden {
+    display: none;
 }
 
 @media (max-width: 990px) {
