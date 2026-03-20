@@ -16,6 +16,8 @@ import com.fitnesslife.gym.model.User;
 import com.fitnesslife.gym.repository.FunctionalTrainingRepository;
 import com.fitnesslife.gym.repository.UserRepository;
 import com.fitnesslife.gym.service.FunctionalTrainingService;
+import com.fitnesslife.gym.service.PaymentService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,6 +31,7 @@ public class UserController {
     private final UserService userService;
     private final FunctionalTrainingRepository trainingRepo;
     private final FunctionalTrainingService functionalTrainingService;
+    private final PaymentService paymentService;
 
     @PostMapping("/register")
     public String register(@ModelAttribute User user, Model model) {
@@ -60,16 +63,21 @@ public class UserController {
 
         User user = userRepo.findByEmail(principal.getName()).orElseThrow();
 
+        boolean hasActivePlan = paymentService.getActivePayment(user.getId()).isPresent();
+        if (!hasActivePlan) {
+            return "redirect:/home?error=sin-plan";
+        }
+
         FunctionalTraining training = trainingRepo.findByIdFunctionalTraining(idFunctionalTraining).orElseThrow();
 
         if (training.getUserIds().contains(user.getIdentification())) {
-            return "redirect:/home?error=Ya inscrito";
+            return "redirect:/home?error=ya-inscrito";
         }
 
         training.getUserIds().add(user.getIdentification());
         trainingRepo.save(training);
 
-        return "redirect:/home?success=Inscrito";
+        return "redirect:/home?success=inscrito";
     }
 
     @PostMapping("/cancelarInscripcion/{id}")

@@ -14,6 +14,7 @@ import com.fitnesslife.gym.model.FunctionalTraining;
 import com.fitnesslife.gym.model.User;
 import com.fitnesslife.gym.repository.UserRepository;
 import com.fitnesslife.gym.service.FunctionalTrainingService;
+import com.fitnesslife.gym.service.PaymentService;
 import com.fitnesslife.gym.service.PlanService;
 import com.fitnesslife.gym.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ public class PageController {
     private final UserRepository userRepository;
     private final FunctionalTrainingService service;
     private final PlanService planService;
+    private final PaymentService paymentService;
 
     private static final String VIEW_INDEX = "index";
     private static final String VIEW_LOGIN = "auth/login";
@@ -67,6 +69,9 @@ public class PageController {
         if (user != null) {
             model.addAttribute("identification", user.getIdentification());
 
+            boolean hasActivePlan = paymentService.getActivePayment(user.getId()).isPresent();
+            model.addAttribute("hasActivePlan", hasActivePlan);
+
             List<FunctionalTraining> misClases = service.getTrainingsByUser(email);
             List<FunctionalTraining> misClasesHoy = misClases.stream()
                     .filter(t -> {
@@ -78,14 +83,16 @@ public class PageController {
                     })
                     .toList();
             model.addAttribute("confirmedClasses", misClasesHoy);
+
         } else {
             model.addAttribute("identification", null);
+            model.addAttribute("hasActivePlan", false);
         }
 
         List<FunctionalTraining> todasLasClases = service.getAllTrainings();
 
         List<FunctionalTraining> clasesDeHoy = todasLasClases.stream()
-                .filter(t -> t.getDatetime() != null) // Evita errores de null
+                .filter(t -> t.getDatetime() != null)
                 .filter(t -> {
                     LocalDate fechaClase = t.getDatetime().toInstant()
                             .atZone(ZoneId.systemDefault())

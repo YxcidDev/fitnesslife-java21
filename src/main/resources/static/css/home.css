@@ -443,6 +443,17 @@ h6 {
     margin-bottom: 1rem;
 }
 
+.badge-no-plan {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--primary-color);
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
 @media screen and (max-width: 768px) {
     .dashboard-container {
         padding: 1.5rem 1rem 6rem;
