@@ -23,6 +23,7 @@ import com.fitnesslife.gym.service.FunctionalTrainingService;
 import com.fitnesslife.gym.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import com.fitnesslife.gym.repository.UserRepository;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -33,6 +34,7 @@ public class DashboardController {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final DashboardService dashboardService;
+    private final UserRepository userRepository;
 
     private static final String VIEW_DASHBOARD = "admin/dashboard";
     private static final String VIEW_USER = "admin/userTable";
@@ -136,6 +138,7 @@ public class DashboardController {
 
         List<FunctionalTraining> trainings = service.getAllTrainings();
         LocalDate hoy = LocalDate.now(ZoneId.systemDefault());
+        List<User> trainers = userRepository.findByRole(Role.TRAINER);
 
         List<FunctionalTraining> clasesDeHoy = trainings.stream()
                 .filter(t -> t.getDatetime() != null)
@@ -200,6 +203,7 @@ public class DashboardController {
         model.addAttribute("page", page);
         model.addAttribute("totalPages", totalPages);
         model.addAttribute("total", total);
+        model.addAttribute("trainers", trainers);
 
         return VIEW_FUNCTIONALTRAINING;
     }
