@@ -31,6 +31,9 @@ public class SecurityConfig {
                         .permitAll()
 
                         .requestMatchers("/dashboard/**", "/admin/**").hasRole("ADMIN")
+                                                .requestMatchers("/attendance/kiosk").hasRole("ADMIN")
+                        .requestMatchers("/api/attendance/verify").hasRole("ADMIN")
+                        .requestMatchers("/api/attendance/active-count").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/trainer/**").hasAnyRole("ADMIN", "TRAINER")
                         .requestMatchers("/client/**").hasAnyRole("USER", "TRAINER")
                         .requestMatchers("/api/plan/**").hasRole("USER")

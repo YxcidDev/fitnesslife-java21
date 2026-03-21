@@ -63,7 +63,8 @@
                                     <th>Código QR</th>
                                     <th>Resultado</th>
                                     <th>Plan del usuario</th>
-                                    <th>Fecha y hora</th>
+                                    <th>Entrada</th>
+                                    <th>Salida</th>
                                     <th class="text-center">Acciones</th>
                                 </tr>
                             </thead>
@@ -71,12 +72,13 @@
                                 <tr th:each="access : ${accesses}">
                                     <td>
                                         <div class="d-flex align-items-center gap-3">
-                                            <img th:src="|https://ui-avatars.com/api/?name=${access.user?.name != null ? access.user.name : 'N'}+${access.user?.lastname != null ? access.user.lastname : 'A'}&background=eb6608&color=fff&size=128|"
+                                            <img th:src="|https://ui-avatars.com/api/?name=${access.userName != null ? access.userName.replace(' ', '+') : 'N+A'}&background=eb6608&color=fff&size=128|"
                                                 alt="Avatar" class="user-avatar">
                                             <div>
                                                 <p class="mb-0 fw-bold user-name"
-                                                    th:text="${access.user.name} + ' ' + ${access.user.lastname}"></p>
-                                                <small class="text-muted" th:text="${access.user.email}"></small>
+                                                    th:text="${access.userName != null ? access.userName : 'N/A'}"></p>
+                                                <small class="text-muted"
+                                                    th:text="${access.userEmail != null ? access.userEmail : ''}"></small>
                                             </div>
                                         </div>
                                     </td>
@@ -84,15 +86,20 @@
                                         <span th:text="${access.qrCode != null ? access.qrCode : 'N/A'}"></span>
                                     </td>
                                     <td>
-                                        <span th:text="${access.result.name() == 'ALLOWED'} ? 'Permitido' : 'Denegado'"></span>
+                                        <span
+                                            th:text="${access.result != null and access.result.name() == 'ALLOWED'} ? 'Permitido' : 'Denegado'"></span>
                                     </td>
                                     <td>
                                         <span
-                                            th:text="${access.user.plan != null ? access.user.plan : 'Sin plan'}"></span>
+                                            th:text="${access.userPlan != null ? access.userPlan : 'Sin plan'}"></span>
                                     </td>
                                     <td>
                                         <span class="text-muted small"
-                                            th:text="${access.accessedAt != null ? #temporals.format(access.accessedAt, 'dd/MM/yyyy HH:mm:ss') : 'N/A'}"></span>
+                                            th:text="${access.checkIn != null ? #temporals.format(access.checkIn, 'dd/MM/yyyy HH:mm:ss') : 'N/A'}"></span>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted small"
+                                            th:text="${access.checkOut != null ? #temporals.format(access.checkOut, 'dd/MM/yyyy HH:mm:ss') : '—'}"></span>
                                     </td>
                                     <td class="text-center">
                                         <div
@@ -112,7 +119,7 @@
                                                 <input type="hidden" name="resultFilter" th:value="${resultFilter}" />
                                                 <input type="hidden" name="search" th:value="${searchTerm}" />
                                                 <button type="submit" class="btn btn-action" title="Eliminar"
-                                                    onclick="return confirm('¿Eliminar este registro de acceso?')">
+                                                    onclick="return confirm('¿Eliminar este registro de asistencia?')">
                                                     <i class="bi bi-trash-fill"></i>
                                                 </button>
                                             </form>
@@ -214,7 +221,8 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary-modal" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-secondary-modal"
+                            data-bs-dismiss="modal">Cancelar</button>
                         <button type="submit" class="btn btn-primary-modal">Actualizar resultado</button>
                     </div>
                 </form>

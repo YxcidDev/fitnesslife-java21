@@ -1,6 +1,7 @@
 package com.fitnesslife.gym.repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +23,8 @@ public interface UserRepository extends MongoRepository<User, String> {
        Page<User> findAll(Pageable pageable);
 
        Page<User> findByRole(Role role, Pageable pageable);
+       
+       List<User> findByRole(Role role);
 
        Page<User> findByIsActive(boolean isActive, Pageable pageable);
 
