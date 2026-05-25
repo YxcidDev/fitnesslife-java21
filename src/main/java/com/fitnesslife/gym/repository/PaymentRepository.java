@@ -70,4 +70,7 @@ public interface PaymentRepository extends MongoRepository<Payment, String> {
 
         @Query(value = "{ 'status': 'ACCEPTED', 'createdAt': { $gte: ?0, $lte: ?1 } }")
         List<Payment> findAcceptedPaymentsForStats(LocalDateTime start, LocalDateTime end);
+
+        @Query(value = "{ 'userId': { $in: ?0 }, 'status': 'ACCEPTED' }", fields = "{ 'userId': 1, 'validUntil': 1, 'status': 1 }")
+        List<Payment> findChurnFieldsByUserIdIn(List<String> userIds);
 }

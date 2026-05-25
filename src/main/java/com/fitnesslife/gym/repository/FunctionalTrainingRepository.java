@@ -31,4 +31,9 @@ public interface FunctionalTrainingRepository extends MongoRepository<Functional
 
     @Query(value = "{ 'status': 'ACTIVE' }", sort = "{ 'userIds': -1 }")
     List<FunctionalTraining> findTopClasses(Pageable pageable);
+
+    boolean existsByUserIdsContaining(Long identification);
+
+    @Query(value = "{}", fields = "{ 'userIds': 1 }")
+    List<FunctionalTraining> findAllUserIdProjections();
 }

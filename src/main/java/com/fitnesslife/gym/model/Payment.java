@@ -22,7 +22,9 @@ import com.fitnesslife.gym.enums.PaymentStatus;
 @CompoundIndexes({
         @CompoundIndex(name = "status_created_idx", def = "{'status': 1, 'createdAt': -1}"),
         @CompoundIndex(name = "user_status_idx", def = "{'user': 1, 'status': 1}"),
-        @CompoundIndex(name = "validity_idx", def = "{'status': 1, 'validFrom': 1, 'validUntil': 1}")
+        @CompoundIndex(name = "validity_idx", def = "{'status': 1, 'validFrom': 1, 'validUntil': 1}"),
+        @CompoundIndex(name = "userId_1_status_1", def = "{'userId': 1, 'status': 1}"),
+        @CompoundIndex(name = "userId_1_validUntil_-1", def = "{'userId': 1, 'validUntil': -1}")
 })
 public class Payment {
 
@@ -34,6 +36,9 @@ public class Payment {
 
     @DBRef(lazy = true)
     private Plan plan;
+
+    @Indexed
+    private String userId;
 
     @Indexed
     private String externalInvoice;

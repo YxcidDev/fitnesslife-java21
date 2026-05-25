@@ -24,6 +24,12 @@
             </a>
         </li>
         <li class="menu-item">
+            <a href="/admin/churn" class="menu-link" th:classappend="${currentPage == 'churn'} ? 'active'">
+                <i class="bi bi-graph-down-arrow"></i>
+                <span>Usuarios en riesgo</span>
+            </a>
+        </li>
+        <li class="menu-item">
             <a href="/admin/userTable" class="menu-link" th:classappend="${currentPage == 'usuarios'} ? 'active'">
                 <i class="bi bi-people-fill"></i>
                 <span>Usuarios</span>
@@ -34,12 +40,6 @@
                 th:classappend="${currentPage == 'clases'} ? 'active'">
                 <i class="bi bi-calendar-event-fill"></i>
                 <span>Clases</span>
-            </a>
-        </li>
-        <li class="menu-item">
-            <a href="/admin/trainers" class="menu-link">
-                <i class="bi bi-person-badge-fill"></i>
-                <span>Entrenadores</span>
             </a>
         </li>
         <li class="menu-item">
@@ -61,13 +61,10 @@
             </a>
         </li>
         <li class="menu-item">
-            <a href="/attendance/kiosk"
-               class="menu-link menu-link--kiosk"
-               target="_blank"
-               rel="noopener noreferrer"
-               title="Abre la pantalla de control de asistencias en una nueva pestaña">
+            <a href="/attendance/kiosk" class="menu-link menu-link--kiosk" target="_blank" rel="noopener noreferrer"
+                title="Abre la pantalla de control de asistencias en una nueva pestaña">
                 <i class="bi bi-qr-code-scan"></i>
-                <span>Control de Asistencias</span>
+                <span>Control de asistencias</span>
                 <i class="bi bi-box-arrow-up-right kiosk-external-icon"></i>
             </a>
         </li>
@@ -75,10 +72,10 @@
 
     <div class="sidebar-footer">
         <a href="/home" class="footer-btn">
-            Ir a Aplicación
+            Ir a aplicación
         </a>
         <a th:href="@{/logout}" class="footer-btn logout">
-            Cerrar Sesión
+            Cerrar sesión
         </a>
     </div>
 
