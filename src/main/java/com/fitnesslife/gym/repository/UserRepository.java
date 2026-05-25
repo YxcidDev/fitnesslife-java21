@@ -23,7 +23,7 @@ public interface UserRepository extends MongoRepository<User, String> {
        Page<User> findAll(Pageable pageable);
 
        Page<User> findByRole(Role role, Pageable pageable);
-       
+
        List<User> findByRole(Role role);
 
        Page<User> findByIsActive(boolean isActive, Pageable pageable);
@@ -73,4 +73,6 @@ public interface UserRepository extends MongoRepository<User, String> {
 
        @Query(value = "{ 'sex': ?0, 'isActive': true }", count = true)
        long countBySexAndIsActive(String sex);
+
+       List<User> findByRoleAndIsActive(Role role, boolean isActive);
 }
