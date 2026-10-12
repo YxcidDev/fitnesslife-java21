@@ -22,6 +22,16 @@ document.addEventListener('DOMContentLoaded', () => {
     loadDashboardData();
 });
 
+function escapeHtml(value) {
+    if (value === null || value === undefined) return '';
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 async function loadDashboardData() {
     try {
         await Promise.all([
@@ -171,11 +181,11 @@ async function loadRecentTransactions() {
         container.innerHTML = transactions.map(t => `
             <div class="transaction-item fade-in">
                 <div class="transaction-header">
-                    <span class="transaction-user">${t.userName}</span>
+                    <span class="transaction-user">${escapeHtml(t.userName)}</span>
                     <span class="transaction-amount">${formatCurrency(t.amount)}</span>
                 </div>
                 <div class="transaction-details">
-                    <span class="transaction-plan">${t.planName}</span>
+                    <span class="transaction-plan">${escapeHtml(t.planName)}</span>
                     <span class="transaction-date">${formatDate(t.date)}</span>
                 </div>
             </div>
@@ -406,12 +416,12 @@ async function loadPopularClasses() {
             return `
                 <div class="transaction-item fade-in" style="animation-delay: ${index * 0.1}s">
                     <div class="transaction-header">
-                        <span class="transaction-user">${c.name}</span>
+                        <span class="transaction-user">${escapeHtml(c.name)}</span>
                         <span class="transaction-amount">${c.enrolled}/${c.capacity}</span>
                     </div>
                     <div class="transaction-details">
                         <span class="transaction-plan">
-                             ${c.instructor}
+                             ${escapeHtml(c.instructor)}
                         </span>
                         <span class="transaction-date">${percentage}% lleno</span>
                     </div>
@@ -444,13 +454,13 @@ async function loadExpiringPlans() {
         container.innerHTML = plans.map((p, index) => `
             <div class="expiring-item fade-in" style="animation-delay: ${index * 0.1}s">
                 <div class="expiring-header">
-                    <span class="expiring-user">${p.userName}</span>
+                    <span class="expiring-user">${escapeHtml(p.userName)}</span>
                     <span class="expiring-days">
                         ${p.daysRemaining} día${p.daysRemaining !== 1 ? 's' : ''}
                     </span>
                 </div>
                 <div class="expiring-details">
-                    Plan ${p.planName} - Vence ${formatDate(p.expirationDate)}
+                    Plan ${escapeHtml(p.planName)} - Vence ${formatDate(p.expirationDate)}
                 </div>
             </div>
         `).join('');

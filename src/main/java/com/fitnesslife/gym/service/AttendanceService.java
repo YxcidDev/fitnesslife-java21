@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import com.fitnesslife.gym.exception.AttendanceNotFoundException;
 
 @Slf4j
 @Service
@@ -49,22 +50,19 @@ public class AttendanceService {
 
     @Transactional
     public AttendanceResult processQrScan(String qrCode) {
-        log.info("Processing QR scan: {}", qrCode);
+        log.info("Processing QR scan");
 
-        Long identification;
-        try {
-            identification = Long.parseLong(qrCode.trim());
-        } catch (NumberFormatException e) {
-            log.warn("QR code is not a valid identification number: {}", qrCode);
+        if (qrCode == null || qrCode.isBlank()) {
+            log.warn("Empty QR code received");
             return new AttendanceResult(AttendanceStatus.NOT_FOUND,
                     "Código QR no reconocido", null, null, null, null);
         }
 
-        Optional<User> userOpt = userService.getUserByIdentification(identification);
+        Optional<User> userOpt = userService.getUserByQrToken(qrCode.trim());
         if (userOpt.isEmpty()) {
-            log.warn("No user found with identification: {}", identification);
+            log.warn("No user found for scanned QR token");
             return new AttendanceResult(AttendanceStatus.NOT_FOUND,
-                    "Usuario no registrado", null, null, null, null);
+                    "Código QR no reconocido", null, null, null, null);
         }
 
         User user = userOpt.get();
@@ -119,10 +117,13 @@ public class AttendanceService {
         Pageable pageable = PageRequest.of(page, size,
                 Sort.by(Sort.Direction.DESC, "checkIn"));
 
-        if (search != null && !search.isBlank() && result != null)
-            return attendanceRepository.searchAttendancesByResult(result, search, pageable);
-        if (search != null && !search.isBlank())
-            return attendanceRepository.searchAttendances(search, pageable);
+        String safeSearch = SearchTermSanitizer.sanitize(search);
+        boolean hasSearch = safeSearch != null && !safeSearch.isBlank();
+
+        if (hasSearch && result != null)
+            return attendanceRepository.searchAttendancesByResult(result, safeSearch, pageable);
+        if (hasSearch)
+            return attendanceRepository.searchAttendances(safeSearch, pageable);
         if (result != null)
             return attendanceRepository.findByResult(result, pageable);
 
@@ -131,7 +132,7 @@ public class AttendanceService {
 
     public Attendance getAttendanceById(String id) {
         return attendanceRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Attendance not found: " + id));
+                .orElseThrow(() -> new AttendanceNotFoundException("Registro de asistencia no encontrado: " + id));
     }
 
     @Transactional

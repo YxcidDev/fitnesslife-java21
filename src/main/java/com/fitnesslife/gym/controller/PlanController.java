@@ -8,6 +8,7 @@ import com.fitnesslife.gym.service.PlanService;
 import com.fitnesslife.gym.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -28,57 +29,59 @@ public class PlanController {
     private final PaymentService paymentService;
     private final UserService userService;
 
+    @Value("${epayco.public-key}")
+    private String epaycoPublicKey;
+
+    @Value("${epayco.test-mode}")
+    private boolean epaycoTestMode;
+
     @GetMapping
     public String showPlans(
             Model model,
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam(value = "success", required = false) String success) {
 
-        try {
-            log.info("Cargando página de planes para usuario: {}", userDetails.getUsername());
+        log.info("Cargando página de planes para usuario: {}", userDetails.getUsername());
 
-            User currentUser = userService.getUserOrThrow(userDetails.getUsername());
+        model.addAttribute("epaycoPublicKey", epaycoPublicKey);
+        model.addAttribute("epaycoTestMode", epaycoTestMode);
 
-            Optional<Payment> activePaymentOpt = paymentService.getActivePayment(currentUser.getId());
+        User currentUser = userService.getUserOrThrow(userDetails.getUsername());
 
-            if (activePaymentOpt.isPresent()) {
-                Payment activePayment = activePaymentOpt.get();
+        Optional<Payment> activePaymentOpt = paymentService.getActivePayment(currentUser.getId());
 
-                log.info("Usuario {} tiene plan activo: {}",
-                        currentUser.getEmail(),
-                        activePayment.getPlan().getPlanName());
+        if (activePaymentOpt.isPresent()) {
+            Payment activePayment = activePaymentOpt.get();
 
-                model.addAttribute("hasActivePlan", true);
-                model.addAttribute("activePayment", activePayment);
-                model.addAttribute("activePlan", activePayment.getPlan());
-                model.addAttribute("validFrom", activePayment.getValidFrom());
-                model.addAttribute("validUntil", activePayment.getValidUntil());
+            log.info("Usuario {} tiene plan activo: {}",
+                    currentUser.getEmail(),
+                    activePayment.getPlan().getPlanName());
 
-                if ("true".equals(success)) {
-                    model.addAttribute("showSuccessAlert", true);
-                }
+            model.addAttribute("hasActivePlan", true);
+            model.addAttribute("activePayment", activePayment);
+            model.addAttribute("activePlan", activePayment.getPlan());
+            model.addAttribute("validFrom", activePayment.getValidFrom());
+            model.addAttribute("validUntil", activePayment.getValidUntil());
 
-            } else {
-                log.info("Usuario {} no tiene plan activo, mostrando planes disponibles",
-                        currentUser.getEmail());
-
-                List<Plan> availablePlans = planService.getAllPlans();
-
-                model.addAttribute("hasActivePlan", false);
-                model.addAttribute("availablePlans", availablePlans);
-
-                if (currentUser.getPlan() != null && !currentUser.getPlan().isEmpty()) {
-                    model.addAttribute("planExpired", true);
-                }
+            if ("true".equals(success)) {
+                model.addAttribute("showSuccessAlert", true);
             }
 
-            log.info("Página de planes cargada exitosamente");
-            return "client/plan";
+        } else {
+            log.info("Usuario {} no tiene plan activo, mostrando planes disponibles",
+                    currentUser.getEmail());
 
-        } catch (Exception e) {
-            log.error("Error al cargar planes: {}", e.getMessage(), e);
-            model.addAttribute("error", "Error al cargar los planes disponibles");
-            return "client/plan";
+            List<Plan> availablePlans = planService.getAllPlans();
+
+            model.addAttribute("hasActivePlan", false);
+            model.addAttribute("availablePlans", availablePlans);
+
+            if (currentUser.getPlan() != null && !currentUser.getPlan().isEmpty()) {
+                model.addAttribute("planExpired", true);
+            }
         }
+
+        log.info("Página de planes cargada exitosamente");
+        return "client/plan";
     }
 }

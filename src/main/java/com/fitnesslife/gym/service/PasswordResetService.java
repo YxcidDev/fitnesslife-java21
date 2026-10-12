@@ -19,30 +19,54 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class PasswordResetService {
 
-    private static final String OTP_PREFIX   = "otp:";
-    private static final int    OTP_TTL_MIN  = 5;
-    private static final int    OTP_LENGTH   = 6;
+    private static final String OTP_PREFIX          = "otp:";
+    private static final String OTP_ATTEMPTS_PREFIX  = "otp:attempts:";
+    private static final String OTP_COOLDOWN_PREFIX  = "otp:cooldown:";
+    private static final int    OTP_TTL_MIN          = 5;
+    private static final int    OTP_LENGTH           = 6;
+    private static final int    MAX_OTP_ATTEMPTS     = 5;
+    private static final int    OTP_COOLDOWN_SECONDS = 60;
 
     private final StringRedisTemplate redisTemplate;
     private final JavaMailSender      mailSender;
     private final UserRepository      userRepository;
     private final PasswordEncoder     passwordEncoder;
 
-    public boolean sendOtp(String email) {
+    public enum OtpSendResult {
+        SENT,
+        USER_NOT_FOUND,
+        COOLDOWN_ACTIVE
+    }
+
+    public enum OtpVerifyResult {
+        OK,
+        INVALID_OTP,
+        TOO_MANY_ATTEMPTS,
+        USER_NOT_FOUND
+    }
+
+    public OtpSendResult sendOtp(String email) {
 
         if (userRepository.findByEmail(email).isEmpty()) {
             log.warn("Intento de recuperación para email inexistente: {}", email);
-            return false;
+            return OtpSendResult.USER_NOT_FOUND;
+        }
+
+        String cooldownKey = OTP_COOLDOWN_PREFIX + email;
+        Boolean cooldownAcquired = redisTemplate.opsForValue()
+                .setIfAbsent(cooldownKey, "1", OTP_COOLDOWN_SECONDS, TimeUnit.SECONDS);
+
+        if (Boolean.FALSE.equals(cooldownAcquired)) {
+            log.warn("Solicitud de OTP en cooldown para: {}", email);
+            return OtpSendResult.COOLDOWN_ACTIVE;
         }
 
         String otp = generateOtp();
+        String otpKey = OTP_PREFIX + email;
+        String attemptsKey = OTP_ATTEMPTS_PREFIX + email;
 
-        redisTemplate.opsForValue().set(
-                OTP_PREFIX + email,
-                otp,
-                OTP_TTL_MIN,
-                TimeUnit.MINUTES
-        );
+        redisTemplate.opsForValue().set(otpKey, otp, OTP_TTL_MIN, TimeUnit.MINUTES);
+        redisTemplate.delete(attemptsKey);
 
         log.info("OTP generado y guardado en Redis para: {}", email);
 
@@ -50,34 +74,58 @@ public class PasswordResetService {
             sendOtpEmail(email, otp);
         } catch (MessagingException e) {
             log.error("Error enviando correo OTP a {}: {}", email, e.getMessage());
-            redisTemplate.delete(OTP_PREFIX + email);
+            redisTemplate.delete(otpKey);
+            redisTemplate.delete(cooldownKey);
             throw new RuntimeException("No se pudo enviar el correo. Intenta de nuevo.");
         }
 
-        return true;
+        return OtpSendResult.SENT;
     }
 
-    public String verifyOtpAndChangePassword(String email, String otpIngresado, String newPassword) {
-        String redisKey    = OTP_PREFIX + email;
-        String otpGuardado = redisTemplate.opsForValue().get(redisKey);
+    public OtpVerifyResult verifyOtpAndChangePassword(String email, String otpIngresado, String newPassword) {
+        String otpKey      = OTP_PREFIX + email;
+        String attemptsKey = OTP_ATTEMPTS_PREFIX + email;
+        String otpGuardado = redisTemplate.opsForValue().get(otpKey);
 
-        if (otpGuardado == null || !otpGuardado.equals(otpIngresado.trim())) {
-            log.warn("OTP inválido o expirado para: {}", email);
-            return "INVALID_OTP";
+        if (otpGuardado == null) {
+            log.warn("OTP inexistente o expirado para: {}", email);
+            return OtpVerifyResult.INVALID_OTP;
+        }
+
+        if (!otpGuardado.equals(otpIngresado.trim())) {
+            long attempts = registerFailedAttempt(attemptsKey);
+            log.warn("OTP incorrecto para: {} (intento {} de {})", email, attempts, MAX_OTP_ATTEMPTS);
+
+            if (attempts >= MAX_OTP_ATTEMPTS) {
+                redisTemplate.delete(otpKey);
+                redisTemplate.delete(attemptsKey);
+                log.warn("Demasiados intentos fallidos para: {}. Código invalidado.", email);
+                return OtpVerifyResult.TOO_MANY_ATTEMPTS;
+            }
+            return OtpVerifyResult.INVALID_OTP;
         }
 
         User user = userRepository.findByEmail(email).orElse(null);
         if (user == null) {
-            return "USER_NOT_FOUND";
+            return OtpVerifyResult.USER_NOT_FOUND;
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
 
-        redisTemplate.delete(redisKey);
+        redisTemplate.delete(otpKey);
+        redisTemplate.delete(attemptsKey);
 
         log.info("Contraseña actualizada exitosamente para: {}", email);
-        return "OK";
+        return OtpVerifyResult.OK;
+    }
+
+    private long registerFailedAttempt(String attemptsKey) {
+        Long attempts = redisTemplate.opsForValue().increment(attemptsKey);
+        if (attempts != null && attempts == 1L) {
+            redisTemplate.expire(attemptsKey, OTP_TTL_MIN, TimeUnit.MINUTES);
+        }
+        return attempts != null ? attempts : 0L;
     }
 
     private String generateOtp() {
@@ -149,5 +197,3 @@ public class PasswordResetService {
             """.formatted(otp);
     }
 }
-
-

@@ -107,7 +107,7 @@ function showBenefitsModal(button) {
                 plan.benefits.forEach(benefit => {
                     const li = document.createElement('li');
                     li.className = 'list-group-item bg-transparent text-white border-0';
-                    li.innerHTML = `${benefit}`;
+                    li.innerHTML = escapeHtml(benefit);
                     benefitsList.appendChild(li);
                 });
             } else {

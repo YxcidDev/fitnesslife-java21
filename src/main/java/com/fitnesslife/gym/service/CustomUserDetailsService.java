@@ -13,24 +13,28 @@ import lombok.RequiredArgsConstructor;
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepo;
+    private final LoginAttemptService loginAttemptService;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         log.info("Intentando autenticar usuario con email: {}", email);
-        
+
         User user = userRepo.findByEmail(email)
                 .orElseThrow(() -> {
-                    log.error("Usuario no encontrado en MongoDB: {}", email);
+                    log.warn("Usuario no encontrado en MongoDB: {}", email);
                     return new UsernameNotFoundException("User not found: " + email);
                 });
 
         log.debug("Usuario encontrado. Roles: {}", user.getRole());
 
+        boolean locked = loginAttemptService.isLocked(email);
+
         return org.springframework.security.core.userdetails.User
                 .withUsername(user.getEmail())
                 .password(user.getPassword())
-                .roles(user.getRole().name()) 
-                .disabled(!user.isActive()) 
+                .roles(user.getRole().name())
+                .disabled(!user.isActive())
+                .accountLocked(locked)
                 .build();
     }
 }

@@ -187,6 +187,23 @@ span {
     background: var(--bg-body);
 }
 
+.sidebar-footer form {
+    margin: 0;
+}
+
+.sidebar-footer button.footer-btn {
+    width: 100%;
+    border: none;
+    cursor: pointer;
+    font-family: 'Work Sans', sans-serif;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.sidebar-footer button.footer-btn.logout {
+    border: 1px solid var(--border-color);
+}
+
 @media (max-width: 768px) {
     .sidebar {
         width: 100%;

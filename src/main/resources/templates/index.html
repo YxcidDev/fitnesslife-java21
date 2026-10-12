@@ -10,6 +10,7 @@
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/cookie-notice.css}">
 </head>
 
 <body>
@@ -47,7 +48,9 @@
                             <a class="nav-link" th:href="@{/login}">Login</a>
                         </li>
                         <li class="nav-item auth-btn" sec:authorize="isAuthenticated()">
-                            <a class="nav-link" href="/logout">Cerrar sesión</a>
+                            <form th:action="@{/logout}" method="post">
+        <button type="submit" class="nav-link">Cerrar sesión</button>
+    </form>
                         </li>
                     </ul>
                 </div>
@@ -77,7 +80,7 @@
                             </article>
                             <article class="col-md-4 featured">
                                 <h2>20<span class="span-hero">K</span></h2>
-                                <p>Sesiones completadas en nuestros centros de entrenamiento.</p>
+                                <p>Sesiones completadas en nuestros centro de entrenamiento.</p>
                             </article>
                         </div>
                     </article>
@@ -213,8 +216,8 @@
                     <div class="carousel-inner">
                         <div class="carousel-item active">
                             <div class="comment-card">
-                                <img src="/img/user1.jpg" alt="Usuario 1" class="comment-avatar">
-                                <h3>Ronnie Coleman</h3>
+                                <img src="/img/user1.jpeg" alt="Usuario 1" class="comment-avatar">
+                                <h3>Camila Restrepo</h3>
                                 <p class="comment-role">Miembro Premium</p>
                                 <p class="comment-text">"Llevo 6 meses entrenando aquí y los resultados son increíbles.
                                     Los entrenadores son muy profesionales y el ambiente es motivador. ¡Totalmente
@@ -230,8 +233,8 @@
                         </div>
                         <div class="carousel-item">
                             <div class="comment-card">
-                                <img src="/img/user2.jpg" alt="Usuario 2" class="comment-avatar">
-                                <h3>Dorian Yates</h3>
+                                <img src="/img/user2.jpeg" alt="Usuario 2" class="comment-avatar">
+                                <h3>Andrés Padilla</h3>
                                 <p class="comment-role">Miembro Elite</p>
                                 <p class="comment-text">"Las instalaciones son de primera y el plan personalizado me
                                     ayudó a alcanzar mis objetivos mucho más rápido de lo que esperaba. Excelente
@@ -247,8 +250,8 @@
                         </div>
                         <div class="carousel-item">
                             <div class="comment-card">
-                                <img src="/img/user3.avif" alt="Usuario 3" class="comment-avatar">
-                                <h3>Arnold Schwarzenegger</h3>
+                                <img src="/img/user3.jpeg" alt="Usuario 3" class="comment-avatar">
+                                <h3>Valentina Torres</h3>
                                 <p class="comment-role">Miembro Básico</p>
                                 <p class="comment-text">"Me encanta la variedad de clases grupales. El personal siempre
                                     está dispuesto a ayudar y la comunidad es muy acogedora. ¡Mejor decisión que he
@@ -329,6 +332,19 @@
                         <i class="bi bi-printer-fill me-3"></i> +57 317 3029226
                     </p>
                 </div>
+                <div class="col-md-2 col-lg-2 col-xl-2 mx-auto mt-3">
+    <h5 class="text-uppercase mb-4 font-weight-bold">Legal</h5>
+    <hr class="mb-4">
+    <p>
+        <a th:href="@{/legal/privacy-policy}" class="text-white">Política de privacidad</a>
+    </p>
+    <p>
+        <a th:href="@{/legal/terms-and-conditions}" class="text-white">Términos y condiciones</a>
+    </p>
+    <p>
+        <a th:href="@{/legal/cookie-policy}" class="text-white">Política de cookies</a>
+    </p>
+</div>
                 <hr class="mb-4">
                 <div class="text-center mb-2">
                     <p>© 2025 Fitness Life. Todos los derechos reservados.<br>

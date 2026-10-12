@@ -27,6 +27,16 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
+function escapeHtml(value) {
+    if (value === null || value === undefined) return '';
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 function viewAccessDetails(button) {
     const accessId     = button.getAttribute('data-access-id');
     const modalContent = document.getElementById('accessDetailsContent');
@@ -53,22 +63,19 @@ function viewAccessDetails(button) {
                     <div class="col-md-6">
                         <h6 class="text-muted mb-3">Información del usuario</h6>
                         <div class="mb-2">
-                            <strong>Nombre:</strong> ${attendance.userName || 'N/A'}
+                            <strong>Nombre:</strong> ${escapeHtml(attendance.userName) || 'N/A'}
                         </div>
                         <div class="mb-2">
-                            <strong>Email:</strong> ${attendance.userEmail || 'N/A'}
+                            <strong>Email:</strong> ${escapeHtml(attendance.userEmail) || 'N/A'}
                         </div>
                         <div class="mb-2">
-                            <strong>Plan:</strong> ${attendance.userPlan || 'Sin plan'}
+                            <strong>Plan:</strong> ${escapeHtml(attendance.userPlan) || 'Sin plan'}
                         </div>
                     </div>
                     <div class="col-md-6">
                         <h6 class="text-muted mb-3">Información del acceso</h6>
                         <div class="mb-2">
                             <strong>Resultado:</strong> ${resultBadge}
-                        </div>
-                        <div class="mb-2">
-                            <strong>Código QR:</strong> ${attendance.qrCode || 'N/A'}
                         </div>
                         <div class="mb-2">
                             <strong>Entrada:</strong> ${formatDate(attendance.checkIn)}
@@ -92,7 +99,7 @@ function viewAccessDetails(button) {
                         ${attendance.userPlan ? `
                         <div class="mb-2">
                             <strong>Plan activo:</strong>
-                            <span>${attendance.userPlan}</span>
+                            <span>${escapeHtml(attendance.userPlan)}</span>
                         </div>
                         <div class="mb-2">
                             <strong>Membresía:</strong>

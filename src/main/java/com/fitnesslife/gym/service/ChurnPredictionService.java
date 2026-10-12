@@ -1,5 +1,6 @@
 package com.fitnesslife.gym.service;
 
+import com.fitnesslife.gym.dto.ChurnPredictionDTO;
 import com.fitnesslife.gym.dto.ChurnResultDTO;
 import com.fitnesslife.gym.enums.Role;
 import com.fitnesslife.gym.model.*;
@@ -9,6 +10,8 @@ import com.fitnesslife.gym.service.ChurnAggregationService.PaymentFeatures;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import weka.classifiers.Classifier;
 import weka.core.*;
@@ -40,6 +43,17 @@ public class ChurnPredictionService {
     private static final int PROFILE_LOW_ATT = 8;
     private static final double PROFILE_LOW_MIN = 25.0;
 
+    public record ChurnDashboardResult(
+            Page<ChurnPrediction> predictions,
+            long highCount,
+            long mediumCount,
+            long lowCount,
+            long totalUsers,
+            double churnPct,
+            boolean hasData,
+            LocalDateTime lastCalculated) {
+    }
+
     @PostConstruct
     public void loadModel() {
         try {
@@ -57,6 +71,93 @@ public class ChurnPredictionService {
 
     public List<ChurnPrediction> getCachedPredictions() {
         return churnPredictionRepository.findAll();
+    }
+
+    public ChurnDashboardResult getDashboardData(String risk, String profile, String search, Pageable pageable) {
+        Page<ChurnPrediction> predictionsPage = resolvePage(risk, profile, search, pageable);
+
+        long highCount = churnPredictionRepository.countByRiskLevel("HIGH");
+        long mediumCount = churnPredictionRepository.countByRiskLevel("MEDIUM");
+        long lowCount = churnPredictionRepository.countByRiskLevel("LOW");
+        long total = highCount + mediumCount + lowCount;
+
+        double churnPct = total > 0
+                ? Math.round(((double) (highCount + mediumCount) / total) * 1000.0) / 10.0
+                : 0.0;
+
+        boolean hasData = total > 0;
+
+        LocalDateTime lastCalculated = predictionsPage.getContent().stream()
+                .map(ChurnPrediction::getCalculatedAt)
+                .filter(Objects::nonNull)
+                .max(Comparator.naturalOrder())
+                .orElse(null);
+
+        return new ChurnDashboardResult(predictionsPage, highCount, mediumCount, lowCount,
+                total, churnPct, hasData, lastCalculated);
+    }
+
+    private Page<ChurnPrediction> resolvePage(String risk, String profile, String search, Pageable pageable) {
+        String safeSearch = SearchTermSanitizer.sanitize(search);
+
+        boolean hasRisk = risk != null && !risk.trim().isEmpty();
+        boolean hasProfile = profile != null && !profile.trim().isEmpty();
+        boolean hasSearch = safeSearch != null && !safeSearch.isEmpty();
+
+        if (hasSearch && hasRisk && hasProfile) {
+            return churnPredictionRepository
+                    .searchByNameAndRiskAndProfile(risk, profile, safeSearch, pageable);
+        }
+        if (hasSearch && hasRisk) {
+            return churnPredictionRepository.searchByNameAndRisk(risk, safeSearch, pageable);
+        }
+        if (hasSearch && hasProfile) {
+            return churnPredictionRepository.searchByNameAndProfile(profile, safeSearch, pageable);
+        }
+        if (hasSearch) {
+            return churnPredictionRepository.searchByName(safeSearch, pageable);
+        }
+        if (hasRisk && hasProfile) {
+            return churnPredictionRepository.findByRiskLevelAndProfile(risk, profile, pageable);
+        }
+        if (hasRisk) {
+            return churnPredictionRepository.findByRiskLevel(risk, pageable);
+        }
+        if (hasProfile) {
+            return churnPredictionRepository.findByProfile(profile, pageable);
+        }
+        return churnPredictionRepository.findAll(pageable);
+    }
+
+    public List<ChurnPredictionDTO> getChurnUsers(String risk) {
+        List<ChurnPrediction> results = (risk != null && !risk.isBlank())
+                ? churnPredictionRepository.findByRiskLevel(risk.toUpperCase())
+                : churnPredictionRepository.findAll();
+
+        return results.stream().map(this::toDTO).toList();
+    }
+
+    private ChurnPredictionDTO toDTO(ChurnPrediction entity) {
+        return new ChurnPredictionDTO(
+                entity.getUserId(),
+                entity.getName(),
+                entity.getEmail(),
+                entity.getPhone(),
+                entity.getPlan(),
+                entity.getPlanLevel(),
+                entity.getProfile(),
+                entity.getNPayments(),
+                entity.getDaysSinceLastPayment(),
+                entity.getNAttendances(),
+                entity.getAvgSessionMinutes(),
+                entity.getDaysSinceLastAtt(),
+                entity.isParticipatesInClasses(),
+                entity.getPrediction(),
+                entity.getPredictionConfidence(),
+                entity.getRiskLevel(),
+                entity.getReasons(),
+                entity.getRecommendations(),
+                entity.getCalculatedAt());
     }
 
     public List<ChurnResultDTO> recalculateAndPersist() {

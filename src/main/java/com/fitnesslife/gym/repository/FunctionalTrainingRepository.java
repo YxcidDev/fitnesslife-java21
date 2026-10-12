@@ -1,13 +1,14 @@
 package com.fitnesslife.gym.repository;
 
 import com.fitnesslife.gym.model.FunctionalTraining;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.data.domain.Pageable;
 
 @Repository
 public interface FunctionalTrainingRepository extends MongoRepository<FunctionalTraining, String> {
@@ -29,6 +30,13 @@ public interface FunctionalTrainingRepository extends MongoRepository<Functional
     List<FunctionalTraining> findByDatetimeBetweenAndStatus(LocalDateTime startDate, LocalDateTime endDate,
             String status);
 
+    List<FunctionalTraining> findByDatetimeBetweenOrderByDatetimeAsc(LocalDateTime startDate, LocalDateTime endDate);
+
+    Page<FunctionalTraining> findByDatetimeBetweenOrderByDatetimeAsc(LocalDateTime startDate, LocalDateTime endDate,
+            Pageable pageable);
+
+    List<FunctionalTraining> findByInstructorIgnoreCase(String instructor);
+
     @Query(value = "{ 'status': 'ACTIVE' }", sort = "{ 'userIds': -1 }")
     List<FunctionalTraining> findTopClasses(Pageable pageable);
 
@@ -36,4 +44,25 @@ public interface FunctionalTrainingRepository extends MongoRepository<Functional
 
     @Query(value = "{}", fields = "{ 'userIds': 1 }")
     List<FunctionalTraining> findAllUserIdProjections();
+
+        // Spring Data MongoDB's Between is exclusive on both bounds.
+    List<FunctionalTraining> findByInstructorIdAndDatetimeBetween(
+            String instructorId, LocalDateTime from, LocalDateTime to);
+
+    Page<FunctionalTraining> findByInstructorIdAndDatetimeBetween(
+            String instructorId, LocalDateTime from, LocalDateTime to, Pageable pageable);
+
+    Page<FunctionalTraining> findByInstructorIdAndDatetimeGreaterThanEqual(
+            String instructorId, LocalDateTime from, Pageable pageable);
+
+    Page<FunctionalTraining> findByInstructorIdAndDatetimeLessThan(
+            String instructorId, LocalDateTime to, Pageable pageable);
+
+    long countByInstructorIdAndDatetimeBetween(
+            String instructorId, LocalDateTime from, LocalDateTime to);
+
+    Optional<FunctionalTraining> findFirstByInstructorIdAndDatetimeGreaterThanEqualOrderByDatetimeAsc(
+            String instructorId, LocalDateTime from);
+
+    List<FunctionalTraining> findByInstructorIdIsNull();
 }

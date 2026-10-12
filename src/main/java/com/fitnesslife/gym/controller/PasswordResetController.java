@@ -23,16 +23,21 @@ public class PasswordResetController {
     public ResponseEntity<Map<String, Object>> sendOtp(@RequestParam String email) {
         log.info("Solicitud de OTP para: {}", email);
         try {
-            boolean sent = passwordResetService.sendOtp(email);
+            var result = passwordResetService.sendOtp(email);
 
-            if (!sent) {
-                return ResponseEntity.ok(Map.of(
+            return switch (result) {
+                case SENT -> ResponseEntity.ok(Map.of("ok", true));
+
+                case COOLDOWN_ACTIVE -> ResponseEntity.ok(Map.of(
+                        "ok",  false,
+                        "msg", "Ya enviamos un código recientemente. Espera un momento antes de solicitar otro."
+                ));
+
+                case USER_NOT_FOUND -> ResponseEntity.ok(Map.of(
                         "ok",  false,
                         "msg", "Si el correo está registrado, recibirás el código en breve."
                 ));
-            }
-
-            return ResponseEntity.ok(Map.of("ok", true));
+            };
 
         } catch (RuntimeException e) {
             log.error("Error en sendOtp: {}", e.getMessage());
@@ -58,27 +63,25 @@ public class PasswordResetController {
             ));
         }
 
-        String result = passwordResetService.verifyOtpAndChangePassword(email, otp, newPassword);
+        var result = passwordResetService.verifyOtpAndChangePassword(email, otp, newPassword);
 
         return switch (result) {
-            case "OK" -> ResponseEntity.ok(Map.of("ok", true));
+            case OK -> ResponseEntity.ok(Map.of("ok", true));
 
-            case "INVALID_OTP" -> ResponseEntity.ok(Map.of(
+            case INVALID_OTP -> ResponseEntity.ok(Map.of(
                     "ok",  false,
                     "msg", "Código incorrecto o expirado. Solicita uno nuevo."
             ));
 
-            case "USER_NOT_FOUND" -> ResponseEntity.ok(Map.of(
+            case TOO_MANY_ATTEMPTS -> ResponseEntity.ok(Map.of(
                     "ok",  false,
-                    "msg", "No se encontró una cuenta con ese correo."
+                    "msg", "Demasiados intentos incorrectos. Solicita un nuevo código."
             ));
 
-            default -> ResponseEntity.ok(Map.of(
+            case USER_NOT_FOUND -> ResponseEntity.ok(Map.of(
                     "ok",  false,
-                    "msg", "Error inesperado. Intenta de nuevo."
+                    "msg", "No se encontró una cuenta con ese correo."
             ));
         };
     }
 }
-
-

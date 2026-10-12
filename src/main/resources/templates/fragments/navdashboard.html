@@ -74,9 +74,11 @@
         <a href="/home" class="footer-btn">
             Ir a aplicación
         </a>
-        <a th:href="@{/logout}" class="footer-btn logout">
-            Cerrar sesión
-        </a>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="footer-btn logout">
+                Cerrar sesión
+            </button>
+        </form>
     </div>
 
 </nav>

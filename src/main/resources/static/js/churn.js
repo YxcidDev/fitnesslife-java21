@@ -1,3 +1,8 @@
+function getCsrfToken() {
+    const match = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/);
+    return match ? decodeURIComponent(match[1]) : null;
+}
+
 document.addEventListener('DOMContentLoaded', function () {
 
     document.querySelectorAll('.btn-churn-detail').forEach(function (btn) {
@@ -20,7 +25,6 @@ document.addEventListener('DOMContentLoaded', function () {
             const reasons         = btn.getAttribute('data-reasons')       || '';
             const recommendations = btn.getAttribute('data-recommendations') || '';
 
-            // ── Cabecera ─────────────────────────────────────────────────────
             document.getElementById('modalUserName').textContent   = name;
             document.getElementById('modalNameDetail').textContent = name;
             document.getElementById('modalEmail').textContent      = email;
@@ -124,7 +128,10 @@ function triggerRecalculate() {
     btn.innerHTML =
         '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Procesando...';
 
-    fetch('/api/churn/recalculate', { method: 'POST' })
+    fetch('/api/churn/recalculate', {
+        method: 'POST',
+        headers: { 'X-XSRF-TOKEN': getCsrfToken() }
+    })
         .then(function (res) { return res.json(); })
         .then(function (data) {
             const seg = (data.elapsedMs / 1000).toFixed(1);

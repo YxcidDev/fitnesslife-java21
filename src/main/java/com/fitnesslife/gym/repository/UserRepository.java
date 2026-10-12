@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 import com.fitnesslife.gym.enums.Role;
 import com.fitnesslife.gym.model.User;
+import java.util.Collection;
 
 @Repository
 public interface UserRepository extends MongoRepository<User, String> {
@@ -19,6 +20,8 @@ public interface UserRepository extends MongoRepository<User, String> {
        Optional<User> findByIdentification(Long identification);
 
        Optional<User> findByQrCodePath(String qrCodePath);
+
+       Optional<User> findByQrToken(String qrToken);
 
        Page<User> findAll(Pageable pageable);
 
@@ -75,4 +78,6 @@ public interface UserRepository extends MongoRepository<User, String> {
        long countBySexAndIsActive(String sex);
 
        List<User> findByRoleAndIsActive(Role role, boolean isActive);
+
+       List<User> findByIdentificationIn(Collection<Long> identifications);
 }

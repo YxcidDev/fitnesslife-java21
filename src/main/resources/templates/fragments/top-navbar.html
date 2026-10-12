@@ -83,15 +83,23 @@
           Historial de pago
         </a>
       </li>
+      <li sec:authorize="hasRole('TRAINER')">
+        <a th:href="@{/trainer/classes}">
+          <i class="bi bi-calendar-check-fill"></i>
+          Mis clases asignadas
+        </a>
+      </li>
     </ul>
 
     <div class="logout-section">
       <ul class="menu-list">
         <li>
-          <a href="/logout" class="logout-btn">
-            <i class="bi bi-door-open-fill"></i>
-            Cerrar sesión
-          </a>
+          <form th:action="@{/logout}" method="post">
+            <button type="submit" class="logout-btn">
+              <i class="bi bi-door-open-fill"></i>
+              Cerrar sesión
+            </button>
+          </form>
         </li>
       </ul>
       <div class="social-links">

@@ -1,6 +1,9 @@
 package com.fitnesslife.gym.controller;
 
+import com.fitnesslife.gym.dto.AttendanceResponseDTO;
 import com.fitnesslife.gym.enums.AccessResult;
+import com.fitnesslife.gym.exception.DomainException;
+import com.fitnesslife.gym.mapper.AttendanceMapper;
 import com.fitnesslife.gym.model.Attendance;
 import com.fitnesslife.gym.service.AttendanceService;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +21,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class AdminAttendanceController {
 
     private final AttendanceService attendanceService;
+    private final AttendanceMapper attendanceMapper;
 
     @GetMapping
     public String showAttendances(
@@ -54,8 +58,8 @@ public class AdminAttendanceController {
 
     @GetMapping("/get/{id}")
     @ResponseBody
-    public Attendance getById(@PathVariable String id) {
-        return attendanceService.getAttendanceById(id);
+    public AttendanceResponseDTO getById(@PathVariable String id) {
+        return attendanceMapper.toResponseDTO(attendanceService.getAttendanceById(id));
     }
 
     @PostMapping("/update-result/{id}")
@@ -66,22 +70,24 @@ public class AdminAttendanceController {
             @RequestParam(required = false) String resultFilter,
             @RequestParam(required = false) String search,
             RedirectAttributes ra) {
+
+        log.info("Actualizando resultado del acceso {} a {}", id, result);
+
+        AccessResult accessResult;
         try {
-            log.info("Actualizando resultado del acceso {} a {}", id, result);
-            AccessResult accessResult;
-            try {
-                accessResult = AccessResult.valueOf(result.toUpperCase());
-            } catch (IllegalArgumentException e) {
-                log.error("Resultado inválido: {}", result);
-                ra.addFlashAttribute("error", "Resultado inválido: " + result);
-                return buildRedirect(page, resultFilter, search);
-            }
+            accessResult = AccessResult.valueOf(result.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            log.warn("Resultado de acceso inválido: {}", result);
+            ra.addFlashAttribute("error", "Resultado inválido");
+            return buildRedirect(page, resultFilter, search);
+        }
+
+        try {
             attendanceService.updateAttendanceResult(id, accessResult);
             ra.addFlashAttribute("success", "Resultado actualizado exitosamente");
-            log.info("Resultado del acceso {} actualizado a {}", id, result);
-        } catch (Exception e) {
-            log.error("Error al actualizar resultado: {}", e.getMessage(), e);
-            ra.addFlashAttribute("error", "Error al actualizar: " + e.getMessage());
+        } catch (DomainException e) {
+            log.warn("No se pudo actualizar el acceso {}: {}", id, e.getMessage());
+            ra.addFlashAttribute("error", e.getMessage());
         }
         return buildRedirect(page, resultFilter, search);
     }
@@ -93,12 +99,9 @@ public class AdminAttendanceController {
             @RequestParam(required = false) String resultFilter,
             @RequestParam(required = false) String search,
             RedirectAttributes ra) {
-        try {
-            attendanceService.deleteAttendance(id);
-            ra.addFlashAttribute("success", "Registro eliminado exitosamente");
-        } catch (Exception e) {
-            ra.addFlashAttribute("error", "Error al eliminar: " + e.getMessage());
-        }
+
+        attendanceService.deleteAttendance(id);
+        ra.addFlashAttribute("success", "Registro eliminado exitosamente");
         return buildRedirect(page, resultFilter, search);
     }
 

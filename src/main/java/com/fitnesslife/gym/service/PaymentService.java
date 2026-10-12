@@ -22,6 +22,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import com.fitnesslife.gym.exception.InvalidPaymentSignatureException;
+import com.fitnesslife.gym.exception.PaymentAmountMismatchException;
+import com.fitnesslife.gym.exception.PaymentNotFoundException;
 
 @Slf4j
 @Service
@@ -85,21 +88,17 @@ public class PaymentService {
 
         String expectedSignature = generateSignature(refPayco, transactionId, amount, currencyCode);
 
-        log.debug("DEBUG HASH: Cadena construida: {}^{}^{}^{}^{}^{} | Hash calculado: {} | Hash Recibido: {}",
-                epaycoCustomerId, epaycoPrivateKey, refPayco, transactionId, amount, currencyCode,
-                expectedSignature, signature);
-
         if (!expectedSignature.equals(signature)) {
-            log.error("Firma inválida. Esperada: {}, Recibida: {}", expectedSignature, signature);
-            throw new RuntimeException("Firma de pago inválida");
+            log.error("Firma inválida para ref_payco: {}", refPayco);
+            throw new InvalidPaymentSignatureException("Firma de pago inválida");
         }
 
         Payment payment = paymentRepository.findByExternalInvoice(externalInvoiceId)
-                .orElseThrow(() -> new RuntimeException("Pago no encontrado: " + externalInvoiceId));
+                .orElseThrow(() -> new PaymentNotFoundException("Pago no encontrado: " + externalInvoiceId));
 
         if (!payment.getAmount().equals(Double.parseDouble(amount))) {
             log.error("Monto no coincide. Esperado: {}, Recibido: {}", payment.getAmount(), amount);
-            throw new RuntimeException("El monto del pago no coincide");
+            throw new PaymentAmountMismatchException("El monto del pago no coincide");
         }
 
         PaymentStatus status = determineStatus(responseCode);
@@ -206,10 +205,7 @@ public class PaymentService {
     public Payment getPaymentById(String id) {
         log.info("Buscando pago con ID: {}", id);
         return paymentRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.error("Pago no encontrado con ID: {}", id);
-                    return new RuntimeException("Pago no encontrado con ID: " + id);
-                });
+                .orElseThrow(() -> new PaymentNotFoundException("Pago no encontrado con ID: " + id));
     }
 
     @Transactional
@@ -233,7 +229,7 @@ public class PaymentService {
             log.info("Usuario {} actualizado con plan {}", user.getId(), user.getPlan());
         }
 
-        if ((PaymentStatus.REJECTED.equals(newStatus) || PaymentStatus.CANCELLED.equals(newStatus)) 
+        if ((PaymentStatus.REJECTED.equals(newStatus) || PaymentStatus.CANCELLED.equals(newStatus))
                 && PaymentStatus.ACCEPTED.equals(oldStatus)) {
             User user = payment.getUser();
             user.setPlan(null);
@@ -324,19 +320,18 @@ public class PaymentService {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
+        String safeSearch = SearchTermSanitizer.sanitize(search);
+        boolean hasSearch = safeSearch != null && !safeSearch.trim().isEmpty();
+
         Page<Payment> paymentsPage;
 
-        if (search != null && !search.trim().isEmpty() && status != null) {
-            log.info("Buscando pagos con estado '{}' y término '{}'", status, search);
-            paymentsPage = paymentRepository.searchPaymentsByStatus(status, search, pageable);
-        } else if (search != null && !search.trim().isEmpty()) {
-            log.info("Buscando pagos con término '{}'", search);
-            paymentsPage = paymentRepository.searchPayments(search, pageable);
+        if (hasSearch && status != null) {
+            paymentsPage = paymentRepository.searchPaymentsByStatus(status, safeSearch, pageable);
+        } else if (hasSearch) {
+            paymentsPage = paymentRepository.searchPayments(safeSearch, pageable);
         } else if (status != null) {
-            log.info("Filtrando pagos por estado '{}'", status);
             paymentsPage = paymentRepository.findByStatus(status, pageable);
         } else {
-            log.info("Obteniendo todos los pagos");
             paymentsPage = paymentRepository.findAll(pageable);
         }
 

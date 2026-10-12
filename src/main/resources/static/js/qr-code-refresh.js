@@ -1,3 +1,8 @@
+function getCsrfToken() {
+    const match = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/);
+    return match ? decodeURIComponent(match[1]) : null;
+}
+
 function refreshQR() {
     const qrImage = document.getElementById('qrCodeImage');
     const refreshBtn = document.querySelector('.refresh-qr-btn');
@@ -9,6 +14,7 @@ function refreshQR() {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'X-XSRF-TOKEN': getCsrfToken()
         }
     })
         .then(response => {

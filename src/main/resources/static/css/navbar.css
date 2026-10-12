@@ -390,6 +390,37 @@ body {
     background: var(--hover-primary);
 }
 
+.logout-section form {
+    margin: 0;
+}
+
+.logout-section button.logout-btn {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 14px 18px;
+    background: var(--card-bg);
+    border: none;
+    border-radius: 4px;
+    color: var(--text-white);
+    transition: .3s;
+    gap: 12px;
+    font-weight: 500;
+    font-family: 'Work Sans', sans-serif;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.logout-section button.logout-btn:hover {
+    background: var(--primary-color);
+    color: var(--text-white);
+}
+
+.logout-section button.logout-btn i {
+    font-size: 1.2rem;
+    color: var(--text-white);
+}
+
 @media (max-width: 768px) {
     .top-navbar {
         padding: 0.8rem 1rem;

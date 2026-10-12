@@ -10,9 +10,19 @@ import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fitnesslife.gym.enums.BloodType;
 import com.fitnesslife.gym.enums.Role;
 import com.fitnesslife.gym.enums.Sex;
+import com.fitnesslife.gym.validation.OnCreate;
+import com.fitnesslife.gym.validation.OnProfileUpdate;
+import com.fitnesslife.gym.validation.OnUpdate;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 @Document(collection = "users")
 @CompoundIndexes({
@@ -25,32 +35,64 @@ public class User implements Serializable {
     @Id
     private String id;
 
+    @NotNull(message = "La identificación es obligatoria", groups = { OnCreate.class, OnUpdate.class })
     @Indexed(unique = true)
     private Long identification;
 
+    @NotBlank(message = "El nombre es obligatorio", groups = { OnCreate.class, OnUpdate.class, OnProfileUpdate.class })
+    @Size(min = 2, max = 30, message = "El nombre debe tener entre 2 y 30 caracteres",
+            groups = { OnCreate.class, OnUpdate.class, OnProfileUpdate.class })
+    @Pattern(regexp = "^[A-Za-zÁÉÍÓÚáéíóúÑñ\\s]+$", message = "El nombre solo admite letras y espacios",
+            groups = { OnCreate.class, OnUpdate.class, OnProfileUpdate.class })
     @Indexed
     private String name;
 
+    @NotBlank(message = "El apellido es obligatorio", groups = { OnCreate.class, OnUpdate.class, OnProfileUpdate.class })
+    @Size(min = 2, max = 30, message = "El apellido debe tener entre 2 y 30 caracteres",
+            groups = { OnCreate.class, OnUpdate.class, OnProfileUpdate.class })
+    @Pattern(regexp = "^[A-Za-zÁÉÍÓÚáéíóúÑñ\\s]+$", message = "El apellido solo admite letras y espacios",
+            groups = { OnCreate.class, OnUpdate.class, OnProfileUpdate.class })
     @Indexed
     private String lastname;
 
     private Sex sex;
+
+    @Past(message = "La fecha de nacimiento no puede ser futura",
+            groups = { OnCreate.class, OnUpdate.class, OnProfileUpdate.class })
     private LocalDate birthDate;
+
     private BloodType bloodType;
 
+    @NotBlank(message = "El correo es obligatorio", groups = { OnCreate.class, OnUpdate.class })
+    @Email(message = "El correo debe tener un formato válido", groups = { OnCreate.class, OnUpdate.class })
     @Indexed(unique = true)
     private String email;
 
+    @Pattern(regexp = "^$|^[0-9]{10}$", message = "El teléfono debe tener exactamente 10 dígitos",
+            groups = { OnCreate.class, OnUpdate.class, OnProfileUpdate.class })
     private String phone;
+
+    @NotBlank(message = "La contraseña es obligatoria", groups = OnCreate.class)
+    @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres", groups = OnCreate.class)
+    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d).+$", message = "La contraseña debe incluir letras y números",
+            groups = OnCreate.class)
+    @JsonIgnore
     private String password;
+
     private String photoProfile;
 
     @Indexed
     private Role role;
 
+    @Pattern(regexp = "^$|^[A-Za-zÁÉÍÓÚáéíóúÑñ\\s]{2,30}$",
+            message = "El plan debe tener entre 2 y 30 caracteres y solo letras", groups = OnUpdate.class)
     private String plan;
+
     private boolean isActive;
     private String qrCodePath;
+
+    @Indexed
+    private String qrToken;
 
     @CreatedDate
     @Indexed
@@ -79,9 +121,9 @@ public class User implements Serializable {
         this.phone = phone;
         this.password = password;
         this.photoProfile = photoProfile;
-        this.role = Role.USER;
+        this.role = role;
         this.plan = plan;
-        this.isActive = true;
+        this.isActive = isActive;
         this.qrCodePath = qrCodePath;
         this.lastLogin = lastLogin;
     }
@@ -204,6 +246,14 @@ public class User implements Serializable {
 
     public void setQrCodePath(String qrCodePath) {
         this.qrCodePath = qrCodePath;
+    }
+
+    public String getQrToken() {
+        return qrToken;
+    }
+
+    public void setQrToken(String qrToken) {
+        this.qrToken = qrToken;
     }
 
     public LocalDateTime getCreatedAt() {

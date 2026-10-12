@@ -1,7 +1,9 @@
 package com.fitnesslife.gym.controller;
 
+import com.fitnesslife.gym.dto.QrScanRequestDTO;
 import com.fitnesslife.gym.service.AttendanceService;
 import com.fitnesslife.gym.service.AttendanceService.AttendanceResult;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -26,40 +28,22 @@ public class AttendanceController {
     @PostMapping("/api/attendance/verify")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> verifyAttendance(
-            @RequestBody Map<String, String> body) {
+            @Valid @RequestBody QrScanRequestDTO body) {
 
-        String qrCode = body.get("qrCode");
-        log.info("Received attendance verification request for QR: {}", qrCode);
+        log.info("Received attendance verification request");
 
-        if (qrCode == null || qrCode.isBlank()) {
-            log.warn("Empty or null QR code received");
-            return ResponseEntity.badRequest()
-                    .body(Map.of(
-                            "status", "ERROR",
-                            "message", "Código QR inválido"));
-        }
+        AttendanceResult result = attendanceService.processQrScan(body.qrCode().trim());
 
-        try {
-            AttendanceResult result = attendanceService.processQrScan(qrCode.trim());
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", result.status().name());
+        response.put("message", result.message());
+        response.put("userName", result.userName());
+        response.put("userPhoto", result.userPhoto());
+        response.put("userPlan", result.userPlan());
+        response.put("userId", result.userId());
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("status", result.status().name());
-            response.put("message", result.message());
-            response.put("userName", result.userName());
-            response.put("userPhoto", result.userPhoto());
-            response.put("userPlan", result.userPlan());
-            response.put("userId", result.userId());
-
-            log.info("Attendance result: {} for QR: {}", result.status(), qrCode);
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            log.error("Error processing attendance for QR: {}", qrCode, e);
-            return ResponseEntity.internalServerError()
-                    .body(Map.of(
-                            "status", "ERROR",
-                            "message", "Error interno al procesar el acceso"));
-        }
+        log.info("Attendance result: {}", result.status());
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/api/attendance/active-count")

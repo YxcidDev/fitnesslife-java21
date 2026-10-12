@@ -2,6 +2,7 @@ package com.fitnesslife.gym.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import com.fitnesslife.gym.exception.PlanNotFoundException;
 import com.fitnesslife.gym.model.Plan;
 import com.fitnesslife.gym.repository.PlanRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,10 +28,7 @@ public class PlanService {
     public Plan getPlanById(String id) {
         log.info("Buscando plan con ID: {}", id);
         return planRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.error("Plan no encontrado con ID: {}", id);
-                    return new RuntimeException("Plan no encontrado con ID: " + id);
-                });
+                .orElseThrow(() -> new PlanNotFoundException("Plan no encontrado con ID: " + id));
     }
 
     public Plan createPlan(Plan plan) {

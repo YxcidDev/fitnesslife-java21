@@ -1,9 +1,21 @@
 package com.fitnesslife.gym.service;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-import java.nio.file.*;
+import java.util.UUID;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -14,9 +26,15 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fitnesslife.gym.model.User;
 import com.fitnesslife.gym.repository.UserRepository;
 import com.fitnesslife.gym.enums.Role;
+import com.fitnesslife.gym.exception.InvalidProfileImageException;
+import com.fitnesslife.gym.exception.InvalidRequestException;
 import com.fitnesslife.gym.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import com.fitnesslife.gym.exception.EmailAlreadyExistsException;
+import com.fitnesslife.gym.exception.IdentificationAlreadyExistsException;
+import java.util.Objects;
+import java.util.Collection;
 
 @Slf4j
 @Service
@@ -25,7 +43,9 @@ import lombok.extern.slf4j.Slf4j;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final String UPLOAD_DIRECTORY = "uploads/profiles";
+    private static final String UPLOAD_DIRECTORY = "uploads/profiles";
+    private static final long MAX_PROFILE_IMAGE_BYTES = 5L * 1024 * 1024;
+    private static final List<String> ALLOWED_IMAGE_FORMATS = List.of("jpeg", "png", "gif");
 
     public Optional<User> findByEmail(String email) {
         log.debug("Buscando usuario con email: {}", email);
@@ -57,6 +77,16 @@ public class UserService {
         return userRepository.findByQrCodePath(qrCodePath);
     }
 
+    public Optional<User> getUserByQrToken(String qrToken) {
+        log.debug("Buscando usuario por token QR");
+        return userRepository.findByQrToken(qrToken);
+    }
+
+    public List<User> getUsersByIdentifications(Collection<Long> identifications) {
+        log.debug("Buscando usuarios por lista de identificaciones");
+        return userRepository.findByIdentificationIn(identifications);
+    }
+
     @Transactional
     public User save(User user) {
         log.debug("Guardando usuario: {}", user.getEmail());
@@ -65,6 +95,11 @@ public class UserService {
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
+    }
+
+    public List<User> getUsersByRole(Role role) {
+        log.debug("Buscando usuarios con rol: {}", role);
+        return userRepository.findByRole(role);
     }
 
     public Page<User> getUsersPaginated(int page, int size, String role, String status, String search) {
@@ -90,21 +125,24 @@ public class UserService {
         } catch (NumberFormatException e) {
         }
 
+        String safeSearch = SearchTermSanitizer.sanitize(search);
+
         Page<User> usersPage;
         boolean hasRole = roleEnum != null;
         boolean hasStatus = status != null && !status.trim().isEmpty();
-        boolean hasSearch = search != null && !search.trim().isEmpty();
+        boolean hasSearch = safeSearch != null && !safeSearch.isEmpty();
 
         if (hasSearch && hasRole && hasStatus) {
             boolean isActive = "active".equals(status);
-            usersPage = userRepository.searchUsersByRoleAndStatus(roleEnum, isActive, search, identification, pageable);
+            usersPage = userRepository.searchUsersByRoleAndStatus(roleEnum, isActive, safeSearch, identification,
+                    pageable);
         } else if (hasSearch && hasRole) {
-            usersPage = userRepository.searchUsersByRole(roleEnum, search, identification, pageable);
+            usersPage = userRepository.searchUsersByRole(roleEnum, safeSearch, identification, pageable);
         } else if (hasSearch && hasStatus) {
             boolean isActive = "active".equals(status);
-            usersPage = userRepository.searchUsersByStatus(isActive, search, identification, pageable);
+            usersPage = userRepository.searchUsersByStatus(isActive, safeSearch, identification, pageable);
         } else if (hasSearch) {
-            usersPage = userRepository.searchUsers(search, identification, pageable);
+            usersPage = userRepository.searchUsers(safeSearch, identification, pageable);
         } else if (hasRole && hasStatus) {
             boolean isActive = "active".equals(status);
             usersPage = userRepository.findByRoleAndIsActive(roleEnum, isActive, pageable);
@@ -125,12 +163,12 @@ public class UserService {
         log.info("Creando nuevo usuario: {}", user.getEmail());
 
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-            throw new RuntimeException("El email ya está registrado");
+            throw new EmailAlreadyExistsException("El email ya está registrado");
         }
 
         if (user.getIdentification() != null &&
                 userRepository.findByIdentification(user.getIdentification()).isPresent()) {
-            throw new RuntimeException("La identificación ya está registrada");
+            throw new IdentificationAlreadyExistsException("La identificación ya está registrada");
         }
 
         user.setCreatedAt(LocalDateTime.now());
@@ -150,7 +188,7 @@ public class UserService {
         if (!existingUser.getEmail().equals(updatedUser.getEmail())) {
             Optional<User> userWithEmail = userRepository.findByEmail(updatedUser.getEmail());
             if (userWithEmail.isPresent() && !userWithEmail.get().getId().equals(id)) {
-                throw new RuntimeException("El email ya está en uso por otro usuario");
+                throw new EmailAlreadyExistsException("El email ya está en uso por otro usuario");
             }
         }
 
@@ -158,7 +196,7 @@ public class UserService {
                 !updatedUser.getIdentification().equals(existingUser.getIdentification())) {
             Optional<User> userWithId = userRepository.findByIdentification(updatedUser.getIdentification());
             if (userWithId.isPresent() && !userWithId.get().getId().equals(id)) {
-                throw new RuntimeException("La identificación ya está en uso por otro usuario");
+                throw new IdentificationAlreadyExistsException("La identificación ya está en uso por otro usuario");
             }
         }
 
@@ -181,9 +219,8 @@ public class UserService {
     }
 
     @Transactional
-    public void updateUserRole(String id, Role role) { // Cambiado de String a Role
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + id));
+    public void updateUserRole(String id, Role role) {
+        User user = getUserByIdOrThrow(id);
         user.setRole(role);
         user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
@@ -202,12 +239,44 @@ public class UserService {
     }
 
     @Transactional
-    public void updateProfilePicture(String email, MultipartFile file) throws Exception {
+    public User updateProfile(String email, User form, boolean healthDataConsent) {
+        User user = getUserOrThrow(email);
+
+        boolean bloodTypeChanged = !Objects.equals(user.getBloodType(), form.getBloodType());
+        if (bloodTypeChanged && form.getBloodType() != null && !healthDataConsent) {
+            throw new InvalidRequestException(
+                    "Debes autorizar el tratamiento de tu dato de salud para registrar el tipo de sangre");
+        }
+
+        user.setName(form.getName());
+        user.setLastname(form.getLastname());
+        user.setPhone(form.getPhone());
+        user.setSex(form.getSex());
+        user.setBirthDate(form.getBirthDate());
+        user.setBloodType(form.getBloodType());
+        user.setUpdatedAt(LocalDateTime.now());
+
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    public void updateProfilePicture(String email, MultipartFile file) {
         User user = getUserOrThrow(email);
         Long idNumber = user.getIdentification();
 
-        if (file != null && !file.isEmpty() && idNumber != null) {
+        if (file == null || file.isEmpty()) {
+            throw new InvalidProfileImageException("No se recibió ningún archivo");
+        }
+        if (idNumber == null) {
+            throw new InvalidProfileImageException("El usuario no tiene identificación registrada");
+        }
+        if (file.getSize() > MAX_PROFILE_IMAGE_BYTES) {
+            throw new InvalidProfileImageException("La imagen supera el tamaño máximo permitido (5 MB)");
+        }
 
+        DecodedImage decoded = decodeAndNormalize(file);
+
+        try {
             String userFolder = UPLOAD_DIRECTORY + "/" + idNumber;
             Path targetFolder = Paths.get(userFolder);
 
@@ -215,25 +284,88 @@ public class UserService {
                 Files.createDirectories(targetFolder);
             }
 
-            String fileExtension = getFileExtension(file.getOriginalFilename());
-            String fileName = idNumber + "_profile" + fileExtension;
+            String fileName = UUID.randomUUID() + "." + decoded.extension();
             Path targetPath = targetFolder.resolve(fileName);
 
-            Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+            Files.write(targetPath, decoded.bytes(), StandardOpenOption.CREATE_NEW);
+
+            deleteOldProfilePicture(user, targetFolder);
 
             String relativeUrl = "/uploads/profiles/" + idNumber + "/" + fileName;
             user.setPhotoProfile(relativeUrl);
             user.setUpdatedAt(LocalDateTime.now());
 
             userRepository.save(user);
-        } else {
-            throw new Exception("File is empty or User identification is missing");
+        } catch (IOException e) {
+            log.error("Error guardando foto de perfil para {}: {}", email, e.getMessage(), e);
+            throw new InvalidProfileImageException("No se pudo guardar la imagen. Intenta de nuevo.");
         }
     }
 
-    private String getFileExtension(String fileName) {
-        if (fileName == null || !fileName.contains("."))
-            return ".png";
-        return fileName.substring(fileName.lastIndexOf("."));
+    private void deleteOldProfilePicture(User user, Path userFolder) {
+        String previousUrl = user.getPhotoProfile();
+        if (previousUrl == null || previousUrl.isBlank()) {
+            return;
+        }
+        try {
+            String previousFileName = previousUrl.substring(previousUrl.lastIndexOf('/') + 1);
+            Files.deleteIfExists(userFolder.resolve(previousFileName));
+        } catch (Exception e) {
+            log.warn("No se pudo eliminar la foto de perfil anterior de {}: {}", user.getEmail(), e.getMessage());
+        }
+    }
+
+    private record DecodedImage(byte[] bytes, String extension) {
+    }
+
+    private DecodedImage decodeAndNormalize(MultipartFile file) {
+        byte[] rawBytes;
+        try {
+            rawBytes = file.getBytes();
+        } catch (IOException e) {
+            throw new InvalidProfileImageException("No se pudo leer el archivo enviado");
+        }
+
+        BufferedImage image;
+        String detectedFormat;
+
+        try (ImageInputStream iis = ImageIO.createImageInputStream(new ByteArrayInputStream(rawBytes))) {
+            if (iis == null) {
+                throw new InvalidProfileImageException(
+                        "El archivo no es una imagen válida (formatos permitidos: JPG, PNG, GIF)");
+            }
+
+            Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
+            if (!readers.hasNext()) {
+                throw new InvalidProfileImageException(
+                        "El archivo no es una imagen válida (formatos permitidos: JPG, PNG, GIF)");
+            }
+
+            ImageReader reader = readers.next();
+            String formatName = reader.getFormatName().toLowerCase();
+            if (!ALLOWED_IMAGE_FORMATS.contains(formatName)) {
+                throw new InvalidProfileImageException(
+                        "Formato de imagen no permitido. Formatos aceptados: JPG, PNG, GIF");
+            }
+
+            reader.setInput(iis);
+            image = reader.read(0);
+            detectedFormat = formatName;
+            reader.dispose();
+        } catch (IOException e) {
+            throw new InvalidProfileImageException("No se pudo leer el archivo como imagen");
+        }
+
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            boolean written = ImageIO.write(image, detectedFormat, out);
+            if (!written) {
+                throw new InvalidProfileImageException("No se pudo procesar la imagen enviada");
+            }
+            String extension = "jpeg".equals(detectedFormat) ? "jpg" : detectedFormat;
+            return new DecodedImage(out.toByteArray(), extension);
+        } catch (IOException e) {
+            throw new InvalidProfileImageException("No se pudo procesar la imagen enviada");
+        }
     }
 }

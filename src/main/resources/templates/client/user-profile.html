@@ -15,6 +15,15 @@
 <body>
     <th:block th:insert="~{fragments/top-navbar}"></th:block>
 
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show mx-3 mt-3" role="alert">
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mx-3 mt-3" role="alert">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
     <div class="plan-card">
         <span class="plan-badge">Plan actual</span>
         <h2 class="plan-name">
@@ -25,7 +34,8 @@
         </div>
     </div>
 
-    <form action="/actualizarUserPerfil" method="post">
+    <form th:action="@{/actualizarUserPerfil}" method="post">
+        
         <div class="info-cards-container">
 
             <div class="info-card">
@@ -118,6 +128,16 @@
                             <option value="O_NEGATIVE" th:selected="${currentUser.bloodType?.name() == 'O_NEGATIVE'}">O-
                             </option>
                         </select>
+
+                        <div class="edit-mode form-check mt-2" style="display:none;">
+                            <input class="form-check-input" type="checkbox" name="healthDataConsent"
+                                id="healthDataConsent" value="true">
+                            <label class="form-check-label" for="healthDataConsent" style="font-size: 0.8rem;">
+                                Autorizo el tratamiento de mi dato de salud para fines de atención en caso de
+                                emergencia. Ver <a th:href="@{/legal/politica-de-privacidad}" target="_blank">Política
+                                    de Privacidad</a>.
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -1,3 +1,8 @@
+function getCsrfToken() {
+    const match = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/);
+    return match ? decodeURIComponent(match[1]) : null;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     const modalEl      = document.getElementById("modalPasswordReset");
     const bsModal      = new bootstrap.Modal(modalEl);
@@ -39,7 +44,10 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const res  = await fetch("/api/password/send-otp", {
                 method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "X-XSRF-TOKEN": getCsrfToken()
+                },
                 body:    `email=${encodeURIComponent(email)}`
             });
             const data = await res.json();
@@ -82,7 +90,10 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const res  = await fetch("/api/password/reset", {
                 method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "X-XSRF-TOKEN": getCsrfToken()
+                },
                 body: `email=${encodeURIComponent(savedEmail)}`
                     + `&otp=${encodeURIComponent(otp)}`
                     + `&newPassword=${encodeURIComponent(newPass)}`

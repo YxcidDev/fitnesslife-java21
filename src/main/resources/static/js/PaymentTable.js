@@ -27,6 +27,16 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
+function escapeHtml(value) {
+    if (value === null || value === undefined) return '';
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 function viewPaymentDetails(button) {
     const paymentId = button.getAttribute('data-payment-id');
     const modalContent = document.getElementById('paymentDetailsContent');
@@ -55,25 +65,25 @@ function viewPaymentDetails(button) {
                     <div class="col-md-6">
                         <h6 class="text-muted mb-3">Información del usuario</h6>
                         <div class="mb-2">
-                            <strong>Nombre:</strong> ${payment.user.name} ${payment.user.lastname}
+                            <strong>Nombre:</strong> ${escapeHtml(payment.user.name)} ${escapeHtml(payment.user.lastname)}
                         </div>
                         <div class="mb-2">
-                            <strong>Email:</strong> ${payment.user.email}
+                            <strong>Email:</strong> ${escapeHtml(payment.user.email)}
                         </div>
                         <div class="mb-2">
-                            <strong>Identificación:</strong> ${payment.user.identification}
+                            <strong>Identificación:</strong> ${escapeHtml(payment.user.identification)}
                         </div>
                     </div>
                     <div class="col-md-6">
                         <h6 class="text-muted mb-3">Información del plan</h6>
                         <div class="mb-2">
-                            <strong>Plan:</strong> ${payment.plan.planName}
+                            <strong>Plan:</strong> ${escapeHtml(payment.plan.planName)}
                         </div>
                         <div class="mb-2">
-                            <strong>Duración:</strong> ${payment.plan.durationDays} días
+                            <strong>Duración:</strong> ${escapeHtml(payment.plan.durationDays)} días
                         </div>
                         <div class="mb-2">
-                            <strong>Badge:</strong> <span class="plan-badge">${payment.plan.badge}</span>
+                            <strong>Badge:</strong> <span class="plan-badge">${escapeHtml(payment.plan.badge)}</span>
                         </div>
                     </div>
                 </div>
@@ -85,28 +95,28 @@ function viewPaymentDetails(button) {
                         <h6 class="text-muted mb-3">Información de pago</h6>
                         <div class="mb-2">
                             <strong>Monto:</strong> 
-                            <span>${payment.currency} ${formatNumber(payment.amount)}</span>
+                            <span>${escapeHtml(payment.currency)} ${formatNumber(payment.amount)}</span>
                         </div>
                         <div class="mb-2">
                             <strong>Estado:</strong> ${statusBadge} ${isActive}
                         </div>
                         <div class="mb-2">
-                            <strong>Factura:</strong> ${payment.externalInvoice || 'N/A'}
+                            <strong>Factura:</strong> ${escapeHtml(payment.externalInvoice) || 'N/A'}
                         </div>
                     </div>
                     <div class="col-md-6">
                         <h6 class="text-muted mb-3">Detalles de transacción</h6>
                         <div class="mb-2">
-                            <strong>ID Transacción:</strong> ${payment.transactionId || 'N/A'}
+                            <strong>ID Transacción:</strong> ${escapeHtml(payment.transactionId) || 'N/A'}
                         </div>
                         <div class="mb-2">
-                            <strong>Código Aprobación:</strong> ${payment.approvalCode || 'N/A'}
+                            <strong>Código Aprobación:</strong> ${escapeHtml(payment.approvalCode) || 'N/A'}
                         </div>
                         <div class="mb-2">
-                            <strong>Banco:</strong> ${payment.bankName || 'N/A'}
+                            <strong>Banco:</strong> ${escapeHtml(payment.bankName) || 'N/A'}
                         </div>
                         <div class="mb-2">
-                            <strong>Franquicia:</strong> ${payment.franchise || 'N/A'}
+                            <strong>Franquicia:</strong> ${escapeHtml(payment.franchise) || 'N/A'}
                         </div>
                     </div>
                 </div>
@@ -132,13 +142,13 @@ function viewPaymentDetails(button) {
                     <div class="col-12">
                         <h6 class="text-muted mb-3">Respuesta del procesador</h6>
                         <div class="mb-2">
-                            <strong>Código:</strong> ${payment.responseCode || 'N/A'}
+                            <strong>Código:</strong> ${escapeHtml(payment.responseCode) || 'N/A'}
                         </div>
                         <div class="mb-2">
-                            <strong>Respuesta:</strong> ${payment.responseText || 'N/A'}
+                            <strong>Respuesta:</strong> ${escapeHtml(payment.responseText) || 'N/A'}
                         </div>
                         <div class="mb-2">
-                            <strong>Razón:</strong> ${payment.responseReason || 'N/A'}
+                            <strong>Razón:</strong> ${escapeHtml(payment.responseReason) || 'N/A'}
                         </div>
                     </div>
                 </div>

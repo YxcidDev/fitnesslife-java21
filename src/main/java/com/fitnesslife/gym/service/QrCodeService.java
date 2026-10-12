@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -28,7 +29,7 @@ public class QrCodeService {
     private static final int QR_HEIGHT = 500;
 
     public String generateAndSaveQRCode(User user) throws WriterException, IOException {
-        String qrText = user.getIdentification().toString();
+        String token = UUID.randomUUID().toString();
 
         String userDir = QR_BASE_DIR + File.separator + user.getIdentification();
         Path userDirPath = Paths.get(userDir);
@@ -41,12 +42,13 @@ public class QrCodeService {
         String qrFilePath = userDir + File.separator + qrFileName;
 
         QRCodeWriter qrCodeWriter = new QRCodeWriter();
-        BitMatrix bitMatrix = qrCodeWriter.encode(qrText, BarcodeFormat.QR_CODE, QR_WIDTH, QR_HEIGHT);
+        BitMatrix bitMatrix = qrCodeWriter.encode(token, BarcodeFormat.QR_CODE, QR_WIDTH, QR_HEIGHT);
         BufferedImage qrImage = MatrixToImageWriter.toBufferedImage(bitMatrix);
 
         File qrFile = new File(qrFilePath);
         ImageIO.write(qrImage, "png", qrFile);
 
+        user.setQrToken(token);
         user.setQrCodePath(qrFilePath);
         userRepository.save(user);
 
@@ -67,6 +69,9 @@ public class QrCodeService {
     }
 
     public boolean qrCodeExists(User user) {
+        if (user.getQrToken() == null || user.getQrToken().isBlank()) {
+            return false;
+        }
         if (user.getQrCodePath() == null || user.getQrCodePath().isEmpty()) {
             return false;
         }

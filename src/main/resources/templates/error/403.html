@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Acceso denegado | Fitness Life</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Work+Sans:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/error.css}">
+</head>
+
+<body>
+
+    <div class="error-wrapper">
+
+        <div class="error-code">ERROR 403</div>
+
+        <h1 class="error-title">Acceso denegado</h1>
+
+        <p class="error-message">
+            <span>No tienes permiso para realizar esta acción, o tu sesión expiró.</span>
+            Recarga la página e inténtalo de nuevo, o vuelve al inicio.
+        </p>
+
+        <div class="error-actions">
+            <a th:href="@{/}">Volver al inicio</a>
+        </div>
+
+        <div class="error-footer">
+            Si el problema persiste, contacta al administrador del sistema.
+        </div>
+
+    </div>
+
+</body>
+
+</html>

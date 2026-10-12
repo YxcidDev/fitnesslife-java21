@@ -5,6 +5,11 @@ const FRONTEND_DEDUP_MS     = 3000;
 const QR_MIN_LENGTH         = 4;
 const API_ENDPOINT          = '/api/attendance/verify';
 
+function getCsrfToken() {
+    const match = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/);
+    return match ? decodeURIComponent(match[1]) : null;
+}
+
 const qrInput           = document.getElementById('qrInput');
 const stateIdle         = document.getElementById('stateIdle');
 const stateProcessing   = document.getElementById('stateProcessing');
@@ -170,7 +175,10 @@ async function handleQrCode(code) {
     try {
         const response = await fetch(API_ENDPOINT, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'X-XSRF-TOKEN': getCsrfToken()
+            },
             body: JSON.stringify({ qrCode: code }),
         });
 

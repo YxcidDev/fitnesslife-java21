@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Política de cookies | Fitness Life</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Work+Sans:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/legal.css}">
+</head>
+
+<body>
+    <div class="legal-container">
+        <a th:href="@{/}" class="legal-back">&larr; Volver al inicio</a>
+
+        <h1>Política de Cookies</h1>
+        <p class="legal-updated">Última actualización: 6 de octubre de 2026</p>
+
+        <h2>1. ¿Qué son las cookies?</h2>
+        <p>
+            Las cookies son pequeños archivos que un sitio web guarda en su navegador para recordar información
+            entre visitas o durante su sesión.
+        </p>
+
+        <h2>2. Cookies que usamos</h2>
+        <p>
+            Todas las cookies que usamos son <strong>estrictamente necesarias</strong> para que la plataforma
+            funcione — no usamos cookies de publicidad ni de analítica.
+        </p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Cookie</th>
+                    <th>Finalidad</th>
+                    <th>Tipo</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Cookie de sesión</td>
+                    <td>Mantener su sesión iniciada mientras usa la plataforma.</td>
+                    <td>Necesaria</td>
+                </tr>
+                <tr>
+                    <td>XSRF-TOKEN</td>
+                    <td>Proteger los formularios y solicitudes contra ataques de falsificación.</td>
+                    <td>Necesaria (seguridad)</td>
+                </tr>
+                <tr>
+                    <td>Cookies de ePayco</td>
+                    <td>Nuestra pasarela de pagos puede establecer sus propias cookies al abrir el checkout, con
+                        fines de prevención de fraude.</td>
+                    <td>Terceros (pasarela de pago)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>3. Cookies que no usamos</h2>
+        <p>
+            No usamos Google Analytics, píxeles de redes sociales, ni ninguna cookie de rastreo publicitario.
+        </p>
+
+        <h2>4. Cómo gestionar las cookies</h2>
+        <p>
+            Puede eliminar o bloquear las cookies desde la configuración de su navegador. Tenga en cuenta que
+            bloquear las cookies necesarias puede impedir que la plataforma funcione correctamente (por ejemplo,
+            no podrá mantener su sesión iniciada).
+        </p>
+
+        <h2>5. Cambios a esta política</h2>
+        <p>
+            Podemos actualizar esta política si cambian las cookies que usamos. Los cambios se publicarán en
+            esta misma página.
+        </p>
+
+        <div class="legal-contact">
+            <strong>Fitness Life</strong><br>
+            info@fitnesslife.com
+        </div>
+    </div>
+</body>
+
+</html>

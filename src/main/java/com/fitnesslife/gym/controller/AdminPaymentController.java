@@ -1,6 +1,9 @@
 package com.fitnesslife.gym.controller;
 
+import com.fitnesslife.gym.dto.PaymentResponseDTO;
 import com.fitnesslife.gym.enums.PaymentStatus;
+import com.fitnesslife.gym.exception.DomainException;
+import com.fitnesslife.gym.mapper.PaymentMapper;
 import com.fitnesslife.gym.model.Payment;
 import com.fitnesslife.gym.service.PaymentService;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +22,7 @@ import java.util.Map;
 public class AdminPaymentController {
 
     private final PaymentService paymentService;
+    private final PaymentMapper paymentMapper;
 
     @GetMapping
     public String showPaymentsManagement(
@@ -27,53 +31,45 @@ public class AdminPaymentController {
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String search,
             Model model) {
-        try {
-            log.info("Cargando gestión de pagos - Página: {}, Tamaño: {}, Status: {}, Búsqueda: {}",
-                    page, size, status, search);
-            PaymentStatus paymentStatus = null;
-            if (status != null && !status.trim().isEmpty()) {
-                try {
-                    paymentStatus = PaymentStatus.valueOf(status.toUpperCase());
-                } catch (IllegalArgumentException e) {
-                    log.warn("Estado de pago inválido recibido: {}", status);
-                }
+
+        log.info("Cargando gestión de pagos - Página: {}, Tamaño: {}, Status: {}, Búsqueda: {}",
+                page, size, status, search);
+
+        PaymentStatus paymentStatus = null;
+        if (status != null && !status.trim().isEmpty()) {
+            try {
+                paymentStatus = PaymentStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                log.warn("Estado de pago inválido recibido: {}", status);
             }
-
-            Page<Payment> paymentsPage = paymentService.getPaymentsPaginated(page, size, paymentStatus, search);
-
-            Map<String, Object> statistics = paymentService.getPaymentStatistics();
-
-            model.addAttribute("payments", paymentsPage.getContent());
-            model.addAttribute("currentPage", page);
-            model.addAttribute("totalPages", paymentsPage.getTotalPages());
-            model.addAttribute("totalItems", paymentsPage.getTotalElements());
-            model.addAttribute("pageSize", size);
-            model.addAttribute("statusFilter", status != null ? status : "");
-            model.addAttribute("searchTerm", search != null ? search : "");
-
-            model.addAttribute("totalPayments", statistics.get("totalPayments"));
-            model.addAttribute("acceptedPayments", statistics.get("acceptedPayments"));
-            model.addAttribute("pendingPayments", statistics.get("pendingPayments"));
-            model.addAttribute("rejectedPayments", statistics.get("rejectedPayments"));
-            model.addAttribute("activePayments", statistics.get("activePayments"));
-            model.addAttribute("totalRevenue", statistics.get("totalRevenue"));
-
-            log.info("Se cargaron {} pagos de {} totales",
-                    paymentsPage.getContent().size(),
-                    paymentsPage.getTotalElements());
-            return "admin/payments";
-        } catch (Exception e) {
-            log.error("Error al cargar pagos: {}", e.getMessage(), e);
-            model.addAttribute("error", "Error al cargar los pagos");
-            return "admin/payments";
         }
+
+        Page<Payment> paymentsPage = paymentService.getPaymentsPaginated(page, size, paymentStatus, search);
+        Map<String, Object> statistics = paymentService.getPaymentStatistics();
+
+        model.addAttribute("payments", paymentsPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", paymentsPage.getTotalPages());
+        model.addAttribute("totalItems", paymentsPage.getTotalElements());
+        model.addAttribute("pageSize", size);
+        model.addAttribute("statusFilter", status != null ? status : "");
+        model.addAttribute("searchTerm", search != null ? search : "");
+
+        model.addAttribute("totalPayments", statistics.get("totalPayments"));
+        model.addAttribute("acceptedPayments", statistics.get("acceptedPayments"));
+        model.addAttribute("pendingPayments", statistics.get("pendingPayments"));
+        model.addAttribute("rejectedPayments", statistics.get("rejectedPayments"));
+        model.addAttribute("activePayments", statistics.get("activePayments"));
+        model.addAttribute("totalRevenue", statistics.get("totalRevenue"));
+
+        return "admin/payments";
     }
 
     @GetMapping("/get/{id}")
     @ResponseBody
-    public Payment getPaymentById(@PathVariable String id) {
+    public PaymentResponseDTO getPaymentById(@PathVariable String id) {
         log.info("Obteniendo pago con ID: {}", id);
-        return paymentService.getPaymentById(id);
+        return paymentMapper.toResponseDTO(paymentService.getPaymentById(id));
     }
 
     @PostMapping("/update-status/{id}")
@@ -84,29 +80,26 @@ public class AdminPaymentController {
             @RequestParam(required = false) String statusFilter,
             @RequestParam(required = false) String search,
             RedirectAttributes redirectAttributes) {
+
+        log.info("Actualizando estado del pago {} a {}", id, status);
+
+        PaymentStatus paymentStatus;
         try {
-            log.info("Actualizando estado del pago {} a {}", id, status);
-            PaymentStatus paymentStatus;
-            try {
-                paymentStatus = PaymentStatus.valueOf(status.toUpperCase());
-            } catch (IllegalArgumentException e) {
-                log.error("Estado de pago inválido: {}", status);
-                redirectAttributes.addFlashAttribute("error", "Estado de pago inválido: " + status);
-                return "redirect:/admin/payments?page=" + page +
-                        (statusFilter != null ? "&status=" + statusFilter : "") +
-                        (search != null ? "&search=" + search : "");
-            }
-            paymentService.updatePaymentStatus(id, paymentStatus);
-            redirectAttributes.addFlashAttribute("success", "Estado del pago actualizado exitosamente");
-            log.info("Estado del pago actualizado correctamente");
-        } catch (Exception e) {
-            log.error("Error al actualizar estado del pago: {}", e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("error", "Error al actualizar el estado: " + e.getMessage());
+            paymentStatus = PaymentStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            log.warn("Estado de pago inválido: {}", status);
+            redirectAttributes.addFlashAttribute("error", "Estado de pago inválido");
+            return buildRedirect(page, statusFilter, search);
         }
 
-        return "redirect:/admin/payments?page=" + page +
-                (statusFilter != null ? "&status=" + statusFilter : "") +
-                (search != null ? "&search=" + search : "");
+        try {
+            paymentService.updatePaymentStatus(id, paymentStatus);
+            redirectAttributes.addFlashAttribute("success", "Estado del pago actualizado exitosamente");
+        } catch (DomainException e) {
+            log.warn("No se pudo actualizar el pago {}: {}", id, e.getMessage());
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return buildRedirect(page, statusFilter, search);
     }
 
     @PostMapping("/delete/{id}")
@@ -116,18 +109,22 @@ public class AdminPaymentController {
             @RequestParam(required = false) String statusFilter,
             @RequestParam(required = false) String search,
             RedirectAttributes redirectAttributes) {
+
+        log.info("Eliminando pago con ID: {}", id);
+
         try {
-            log.info("Eliminando pago con ID: {}", id);
             paymentService.deletePayment(id);
             redirectAttributes.addFlashAttribute("success", "Pago eliminado exitosamente");
-            log.info("Pago eliminado con éxito");
-        } catch (Exception e) {
-            log.error("Error al eliminar pago: {}", e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("error", "Error al eliminar el pago: " + e.getMessage());
+        } catch (DomainException e) {
+            log.warn("No se pudo eliminar el pago {}: {}", id, e.getMessage());
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
+        return buildRedirect(page, statusFilter, search);
+    }
 
-        return "redirect:/admin/payments?page=" + page +
-                (statusFilter != null ? "&status=" + statusFilter : "") +
-                (search != null ? "&search=" + search : "");
+    private String buildRedirect(int page, String statusFilter, String search) {
+        return "redirect:/admin/payments?page=" + page
+                + (statusFilter != null ? "&status=" + statusFilter : "")
+                + (search != null ? "&search=" + search : "");
     }
 }

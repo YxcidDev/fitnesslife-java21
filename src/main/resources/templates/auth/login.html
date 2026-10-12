@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login</title>
+    <title>Login | Fitness Life</title>
     <link rel="icon" type="image/png" th:href="@{/img/icons/logo-fl.png}" />
     <link rel="stylesheet" href="/css/login.css" />
     <link
@@ -21,7 +21,7 @@
       <div class="box">
         <div class="inner-box">
           <div class="forms-wrap">
-            <form action="/login" method="post" class="sign-in-form">
+            <form th:action="@{/login}" method="post" class="sign-in-form">
               <div class="logo">
                 <img src="/img/logo-fitnesslife.png" alt="Logo" />
               </div>
@@ -33,6 +33,31 @@
               </div>
 
               <div class="actual-form">
+                <div
+                  th:if="${param.error}"
+                  class="alert alert-danger py-2 small mb-3"
+                >
+                  Correo o contraseña incorrectos.
+                </div>
+                <div
+                  th:if="${param.locked}"
+                  class="alert alert-danger py-2 small mb-3"
+                >
+                  Demasiados intentos fallidos. Tu cuenta quedó bloqueada
+                  temporalmente, inténtalo de nuevo en unos minutos.
+                </div>
+                <div
+                  th:if="${param.expired}"
+                  class="alert alert-warning py-2 small mb-3"
+                >
+                  Tu sesión expiró. Inicia sesión de nuevo.
+                </div>
+                <div
+                  th:if="${param.registered}"
+                  class="alert alert-success py-2 small mb-3"
+                >
+                  Cuenta creada correctamente. Ya puedes iniciar sesión.
+                </div>
                 <div class="input-wrap">
                   <input
                     type="email"
@@ -64,7 +89,7 @@
               </div>
             </form>
 
-            <form action="/register" method="post" class="sign-up-form">
+            <form th:action="@{/register}" method="post" class="sign-up-form">
               <div class="logo">
                 <img src="/img/logo-fitnesslife.png" alt="Logo" />
               </div>
@@ -121,11 +146,20 @@
                   />
                   <label>Contraseña</label>
                 </div>
+                <div class="consent-check" style="display:flex; align-items:flex-start; gap:8px; text-align:left;">
+                  <input type="checkbox" name="acceptedTerms" id="acceptedTerms" required
+                    style="margin-top:3px; width:16px; height:16px; min-width:16px; flex-shrink:0; accent-color:#eb6608;">
+                  <label for="acceptedTerms"
+                    style="position:static; font-size: 12px; line-height:1.4; font-weight: normal; color:#d3d3d3; margin:0;">
+                    Acepto los
+                    <a th:href="@{/legal/terms-and-conditions}" target="_blank"
+                      style="color:#eb6608; text-decoration: underline;">Términos y condiciones</a>
+                    y la
+                    <a th:href="@{/legal/privacy-policy}" target="_blank"
+                      style="color:#eb6608; text-decoration: underline;">Política de tratamiento de datos</a>.
+                  </label>
+                </div>
                 <input type="submit" value="Registrarse" class="sign-btn" />
-                <p class="text">
-                  Al registrarte, aceptas nuestros
-                  <a href="#">términos y condiciones</a>.
-                </p>
               </div>
             </form>
           </div>

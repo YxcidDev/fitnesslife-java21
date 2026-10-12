@@ -33,11 +33,17 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
+function getCsrfToken() {
+    const match = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/);
+    return match ? decodeURIComponent(match[1]) : null;
+}
+
 async function createPendingPayment(userId, planId, externalInvoice) {
     const response = await fetch('/api/payment/create', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-XSRF-TOKEN': getCsrfToken()
         },
         body: JSON.stringify({
             userId: userId,
@@ -55,9 +61,12 @@ async function createPendingPayment(userId, planId, externalInvoice) {
 
 function openEpaycoCheckout(data) {
     const baseUrl = window.location.origin;
+    const epaycoKey = document.body.dataset.epaycoKey;
+    const epaycoTest = document.body.dataset.epaycoTest === 'true';
+
     const handler = ePayco.checkout.configure({
-        key: 'a6cab5b1342bbbb93e223a9ba5b3519d',
-        test: true
+        key: epaycoKey,
+        test: epaycoTest
     });
 
     const checkoutData = {

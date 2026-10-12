@@ -1,38 +1,55 @@
 package com.fitnesslife.gym.controller;
 
+import com.fitnesslife.gym.dto.FunctionalTrainingResponseDTO;
+import com.fitnesslife.gym.exception.AlreadyEnrolledException;
+import com.fitnesslife.gym.exception.DomainException;
+import com.fitnesslife.gym.exception.FunctionalTrainingNotFoundException;
+import com.fitnesslife.gym.exception.InvalidRequestException;
+import com.fitnesslife.gym.exception.NoActivePlanException;
+import com.fitnesslife.gym.mapper.FunctionalTrainingMapper;
 import com.fitnesslife.gym.model.FunctionalTraining;
 import com.fitnesslife.gym.service.FunctionalTrainingService;
-import org.springframework.http.ResponseEntity;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import java.security.Principal;
+import java.util.stream.Collectors;
 
+@Slf4j
+@RequiredArgsConstructor
 @Controller
 @RequestMapping("/trainings")
 public class FunctionalTrainingController {
 
+    private static final String REDIRECT_ADMIN_CLASSES = "redirect:/admin/functionalTraining";
+
     private final FunctionalTrainingService service;
-
-    public FunctionalTrainingController(FunctionalTrainingService service) {
-        this.service = service;
-    }
-
-    @GetMapping
-    public String listTrainings(Model model) {
-        service.actualizarEstados();
-        List<FunctionalTraining> trainings = service.getAllTrainings();
-
-        model.addAttribute("training", trainings);
-
-        return "admin/functionalTrainingCrud";
-    }
+    private final FunctionalTrainingMapper trainingMapper;
 
     @PostMapping("/save")
-    public String saveTraining(@ModelAttribute FunctionalTraining training) {
-        service.createTraining(training);
+    public String saveTraining(
+            @Valid @ModelAttribute FunctionalTraining training,
+            BindingResult bindingResult,
+            RedirectAttributes redirectAttributes) {
 
-        return "redirect:/admin/functionalTraining";
+        if (bindingResult.hasErrors()) {
+            redirectAttributes.addFlashAttribute("error", summarizeErrors(bindingResult));
+            return REDIRECT_ADMIN_CLASSES;
+        }
+
+        try {
+            service.createTraining(training);
+            redirectAttributes.addFlashAttribute("success", "Clase creada exitosamente");
+        } catch (DomainException e) {
+            log.warn("No se pudo crear la clase: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+
+        return REDIRECT_ADMIN_CLASSES;
     }
 
     @PostMapping("/delete/{id}")
@@ -48,40 +65,80 @@ public class FunctionalTrainingController {
 
     @GetMapping("/api/{id}")
     @ResponseBody
-    public ResponseEntity<FunctionalTraining> getTrainingById(@PathVariable String id) {
+    public FunctionalTrainingResponseDTO getTrainingById(@PathVariable String id) {
         return service.getTrainingById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .map(trainingMapper::toResponseDTO)
+                .orElseThrow(() -> new FunctionalTrainingNotFoundException("Clase no encontrada: " + id));
     }
 
     @PostMapping("/update")
     public String updateTrainingPost(
             @RequestParam("id") String id,
             @RequestParam("nameTraining") String nameTraining,
-            @RequestParam("instructor") String instructor,
+            @RequestParam("instructorId") String instructorId,
             @RequestParam("room") String room,
             @RequestParam("date") String date,
-            @RequestParam("time") String time) {
+            @RequestParam("time") String time,
+            RedirectAttributes redirectAttributes) {
 
-        FunctionalTraining existing = service.getTrainingById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Entrenamiento no encontrado"));
-
-        existing.setNameTraining(nameTraining);
-        existing.setInstructor(instructor);
-        existing.setRoom(room);
-
-        if (!date.isEmpty() && !time.isEmpty()) {
-            String datetimeStr = date + " " + time;
-            try {
-                java.text.SimpleDateFormat formatter = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm");
-                existing.setDatetime(formatter.parse(datetimeStr));
-            } catch (java.text.ParseException e) {
-                throw new IllegalArgumentException("Fecha u hora inválida");
+        try {
+            if (nameTraining == null || nameTraining.isBlank()
+                    || instructorId == null || instructorId.isBlank()
+                    || room == null || room.isBlank()) {
+                throw new InvalidRequestException("Nombre, instructor y sala son obligatorios");
             }
+
+            FunctionalTraining existing = service.getTrainingById(id)
+                    .orElseThrow(() -> new FunctionalTrainingNotFoundException("Clase no encontrada: " + id));
+
+            existing.setNameTraining(nameTraining);
+            existing.setInstructorId(instructorId);
+            existing.setRoom(room);
+
+            if (!date.isEmpty() && !time.isEmpty()) {
+                String datetimeStr = date + " " + time;
+                try {
+                    java.text.SimpleDateFormat formatter = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm");
+                    existing.setDatetime(formatter.parse(datetimeStr));
+                } catch (java.text.ParseException e) {
+                    throw new InvalidRequestException("Fecha u hora inválida");
+                }
+            }
+
+            service.updateTraining(existing.getId(), existing);
+            redirectAttributes.addFlashAttribute("success", "Clase actualizada exitosamente");
+        } catch (DomainException e) {
+            log.warn("No se pudo actualizar la clase {}: {}", id, e.getMessage());
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
 
-        service.updateTraining(existing.getId(), existing);
+        return REDIRECT_ADMIN_CLASSES;
+    }
 
-        return "redirect:/admin/functionalTraining";
+    @PostMapping("/inscribirme/{idFunctionalTraining}")
+    public String inscribirme(@PathVariable int idFunctionalTraining, Principal principal) {
+        try {
+            service.inscribirUsuario(idFunctionalTraining, principal.getName());
+            return "redirect:/home?success=inscrito";
+        } catch (NoActivePlanException e) {
+            return "redirect:/home?error=sin-plan";
+        } catch (AlreadyEnrolledException e) {
+            return "redirect:/home?error=ya-inscrito";
+        }
+    }
+
+    @PostMapping("/cancelarInscripcion/{id}")
+    public String cancelarInscripcion(@PathVariable int id, Principal principal) {
+        service.cancelarInscripcion(id, principal.getName());
+        return "redirect:/home?success=Cancelada";
+    }
+
+    private String summarizeErrors(BindingResult bindingResult) {
+        return bindingResult.getFieldErrors().stream()
+                .map(error -> error.isBindingFailure()
+                        ? "El valor del campo '" + error.getField() + "' no es válido"
+                        : error.getDefaultMessage())
+                .distinct()
+                .collect(Collectors.joining(". "));
     }
 }
