@@ -33,4 +33,4 @@ build/
 .vscode/
 
 ### Profiles ###
-.application-dev.properties
+**/application-dev.properties
