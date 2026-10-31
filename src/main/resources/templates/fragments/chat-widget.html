@@ -1,0 +1,67 @@
+<div th:fragment="chat-widget" id="flChat" class="fl-chat" th:data-api="@{/api/chat}">
+    <link rel="stylesheet" th:href="@{/css/chat-widget.css}">
+
+    <button type="button" id="flChatToggle" class="fl-chat__toggle" aria-label="Abrir el asistente"
+        aria-expanded="false" aria-controls="flChatPanel">
+        <i class="bi bi-chat-dots-fill fl-chat__icon-open" aria-hidden="true"></i>
+        <i class="bi bi-x-lg fl-chat__icon-close" aria-hidden="true"></i>
+    </button>
+
+    <section id="flChatPanel" class="fl-chat__panel" role="dialog" aria-label="Asistente de Fitness Life" hidden>
+
+        <header class="fl-chat__header">
+            <div class="fl-chat__title">
+                <h2>Asistente Fitness Life</h2>
+                <p>Responde con la información del gimnasio</p>
+            </div>
+            <div class="fl-chat__actions">
+                <button type="button" id="flChatNew" class="fl-chat__icon-btn" title="Nueva conversación"
+                    aria-label="Nueva conversación">
+                    <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                </button>
+                <button type="button" id="flChatDelete" class="fl-chat__icon-btn" title="Eliminar conversación"
+                    aria-label="Eliminar conversación" hidden>
+                    <i class="bi bi-trash3" aria-hidden="true"></i>
+                </button>
+                <button type="button" id="flChatClose" class="fl-chat__icon-btn" title="Cerrar"
+                    aria-label="Cerrar el asistente">
+                    <i class="bi bi-x-lg" aria-hidden="true"></i>
+                </button>
+            </div>
+        </header>
+
+        <div id="flChatMessages" class="fl-chat__messages" role="log" aria-live="polite" aria-relevant="additions">
+            <div id="flChatEmpty" class="fl-chat__empty">
+                <h3>¿En qué te puedo ayudar?</h3>
+                <p>Pregúntame sobre las políticas de Fitness Life, el acceso con código QR o el tratamiento de tus datos.</p>
+                <button type="button" class="fl-chat__suggestion"
+                    data-question="¿Cuál es la política de reembolso?">¿Cuál es la política de reembolso?</button>
+                <button type="button" class="fl-chat__suggestion"
+                    data-question="¿Cómo funciona el código QR de acceso?">¿Cómo funciona el código QR de acceso?</button>
+                <button type="button" class="fl-chat__suggestion"
+                    data-question="¿Qué datos personales tratan y para qué?">¿Qué datos personales tratan y para qué?</button>
+            </div>
+        </div>
+
+        <div id="flChatError" class="fl-chat__error" role="alert" hidden></div>
+
+        <div class="fl-chat__composer">
+            <textarea id="flChatInput" class="fl-chat__input" rows="1" placeholder="Escribe tu pregunta…"
+                aria-label="Mensaje para el asistente" th:maxlength="${chatMaxMessageLength}"></textarea>
+            <button type="button" id="flChatSend" class="fl-chat__send" aria-label="Enviar mensaje" disabled>
+                <i class="bi bi-send-fill" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="fl-chat__meta">
+            <span id="flChatCounter" class="fl-chat__counter" hidden></span>
+        </div>
+
+        <p class="fl-chat__disclaimer">
+            Asistente con inteligencia artificial: puede equivocarse. No compartas datos personales ni de salud.
+            Tus conversaciones se eliminan solas tras <span th:text="${chatRetentionDays}">90</span> días sin actividad.
+            <a th:href="@{/legal/privacy-policy}" target="_blank" rel="noopener">Política de privacidad</a>
+        </p>
+    </section>
+
+    <script th:src="@{/js/chat-widget.js}" defer></script>
+</div>

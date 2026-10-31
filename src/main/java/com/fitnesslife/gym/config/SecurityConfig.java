@@ -64,6 +64,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/attendance/active-count").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/trainer/**").hasRole("TRAINER")
                         .requestMatchers("/api/plan/**").hasRole("USER")
+                        .requestMatchers("/api/chat/**").hasAnyRole("USER", "TRAINER", "ADMIN")
 
                         .anyRequest().authenticated())
 

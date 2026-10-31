@@ -119,6 +119,18 @@ public class GlobalExceptionHandler {
                 "Ha ocurrido un error inesperado", null, traceId, request);
     }
 
+    @ExceptionHandler(ChatException.class)
+    public Object handleChatException(ChatException ex, HttpServletRequest request) {
+        Object response = handleDomainException(ex, request);
+        if (ex.getRetryAfterSeconds() != null && response instanceof ResponseEntity<?> entity) {
+            return ResponseEntity.status(entity.getStatusCode())
+                    .header(HttpHeaders.RETRY_AFTER, String.valueOf(ex.getRetryAfterSeconds()))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(entity.getBody());
+        }
+        return response;
+    }
+
     private Object respond(HttpStatus status, String code, String message,
             List<ApiError.FieldViolation> fieldErrors, String traceId, HttpServletRequest request) {
 

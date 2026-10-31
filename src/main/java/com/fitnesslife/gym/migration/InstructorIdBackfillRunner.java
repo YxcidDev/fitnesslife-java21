@@ -9,11 +9,6 @@ import com.fitnesslife.gym.service.FunctionalTrainingService.InstructorBackfillR
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * Temporary migration: links existing classes to their trainer by user id.
- * Safe to run on every start (it only touches classes without an instructorId).
- * Delete this class and FunctionalTrainingService#backfillInstructorIds once no class is left unlinked.
- */
 @Slf4j
 @Component
 @Profile("!test")

@@ -28,7 +28,6 @@ import jakarta.validation.constraints.Pattern;
 })
 public class FunctionalTraining {
 
-    /** Used for legacy documents whose duration is empty or not parseable. */
     public static final int DEFAULT_DURATION_MINUTES = 60;
 
     @Id
@@ -41,10 +40,8 @@ public class FunctionalTraining {
     @Indexed
     private String nameTraining;
 
-    /** Display name of the trainer: a snapshot written by the server when the class is assigned. */
     private String instructor;
 
-    /** Id of the trainer's user document. This is the real link used for schedules and conflict checks. */
     @NotBlank(message = "El instructor es obligatorio")
     private String instructorId;
 
@@ -97,15 +94,10 @@ public class FunctionalTraining {
         this.userIds = (userIds != null) ? userIds : new ArrayList<>();
     }
 
-    /** Start of the class in the server time zone, or null if the class has no date. */
     public LocalDateTime startsAt() {
         return datetime == null ? null : LocalDateTime.ofInstant(datetime.toInstant(), ZoneId.systemDefault());
     }
 
-    /**
-     * Duration in minutes. New input is validated as a plain integer, but legacy documents
-     * may contain free text (e.g. "45 min"); in that case the first run of digits is used.
-     */
     public int durationMinutes() {
         if (duration == null) {
             return DEFAULT_DURATION_MINUTES;
@@ -128,7 +120,6 @@ public class FunctionalTraining {
         return minutes > 0 ? minutes : DEFAULT_DURATION_MINUTES;
     }
 
-    /** End of the class (exclusive), or null if the class has no date. */
     public LocalDateTime endsAt() {
         LocalDateTime start = startsAt();
         return start == null ? null : start.plusMinutes(durationMinutes());

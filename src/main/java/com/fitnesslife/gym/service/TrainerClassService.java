@@ -98,10 +98,6 @@ public class TrainerClassService {
                 trainerId, inclusiveStart(start), endExclusive, pageable);
     }
 
-    /**
-     * Spring Data MongoDB's Between is exclusive on both bounds. Moving the start back one
-     * millisecond (the precision of Mongo dates) makes the start instant inclusive.
-     */
     private LocalDateTime inclusiveStart(LocalDateTime start) {
         return start.minusNanos(ONE_MILLISECOND_IN_NANOS);
     }

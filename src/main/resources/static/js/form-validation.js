@@ -11,12 +11,12 @@ const expressions = {
 };
 
 const errorMessages = {
-    name: 'El nombre debe contener solo letras y tener entre 2 y 40 caracteres',
-    lastname: 'El apellido debe contener solo letras y tener entre 2 y 40 caracteres',
-    identification: 'La identificación debe tener entre 6 y 12 dígitos',
-    phone: 'Por favor ingresa un número de teléfono válido (10 dígitos, inicia con 3)',
-    email: 'Por favor ingresa un correo electrónico válido',
-    password: 'La contraseña debe tener al menos 8 caracteres e incluir mayúscula, minúscula y número'
+    name: 'Solo letras, entre 2 y 40 caracteres',
+    lastname: 'Solo letras, entre 2 y 40 caracteres',
+    identification: 'Entre 6 y 12 dígitos',
+    phone: '10 dígitos e inicia con 3',
+    email: 'Correo electrónico inválido',
+    password: 'Mín. 8 caracteres: mayúscula, minúscula y número'
 };
 
 const validateForm = (e) => {

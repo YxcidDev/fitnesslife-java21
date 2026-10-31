@@ -45,7 +45,6 @@ public interface FunctionalTrainingRepository extends MongoRepository<Functional
     @Query(value = "{}", fields = "{ 'userIds': 1 }")
     List<FunctionalTraining> findAllUserIdProjections();
 
-        // Spring Data MongoDB's Between is exclusive on both bounds.
     List<FunctionalTraining> findByInstructorIdAndDatetimeBetween(
             String instructorId, LocalDateTime from, LocalDateTime to);
 

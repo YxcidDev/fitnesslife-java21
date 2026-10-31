@@ -37,12 +37,12 @@ h6 {
   align-items: center;
   color: white;
   background: var(--primary-color);
-  border-radius: 50%;
+  border-radius: 4px;
   width: 50px;
   height: 50px;
   position: fixed;
   bottom: 90px;
-  right: 20px;
+  left: 20px;
   z-index: 1000;
   text-decoration: none;
   transition: 0.3s;

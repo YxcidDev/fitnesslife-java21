@@ -16,6 +16,8 @@ import java.util.UUID;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
+
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fitnesslife.gym.model.User;
 import com.fitnesslife.gym.repository.UserRepository;
 import com.fitnesslife.gym.enums.Role;
+import com.fitnesslife.gym.event.UserDeletedEvent;
 import com.fitnesslife.gym.exception.InvalidProfileImageException;
 import com.fitnesslife.gym.exception.InvalidRequestException;
 import com.fitnesslife.gym.exception.UserNotFoundException;
@@ -35,6 +38,8 @@ import com.fitnesslife.gym.exception.EmailAlreadyExistsException;
 import com.fitnesslife.gym.exception.IdentificationAlreadyExistsException;
 import java.util.Objects;
 import java.util.Collection;
+import org.springframework.context.ApplicationEventPublisher;
+import com.fitnesslife.gym.event.UserDeletedEvent;
 
 @Slf4j
 @Service
@@ -46,6 +51,7 @@ public class UserService {
     private static final String UPLOAD_DIRECTORY = "uploads/profiles";
     private static final long MAX_PROFILE_IMAGE_BYTES = 5L * 1024 * 1024;
     private static final List<String> ALLOWED_IMAGE_FORMATS = List.of("jpeg", "png", "gif");
+    private final ApplicationEventPublisher eventPublisher;
 
     public Optional<User> findByEmail(String email) {
         log.debug("Buscando usuario con email: {}", email);
@@ -231,6 +237,7 @@ public class UserService {
         log.debug("Eliminando usuario con ID: {}", id);
         User user = getUserByIdOrThrow(id);
         userRepository.delete(user);
+        eventPublisher.publishEvent(new UserDeletedEvent(user.getId()));
         log.info("Usuario eliminado exitosamente: {}", user.getEmail());
     }
 

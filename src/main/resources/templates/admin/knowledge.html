@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base de conocimiento | Fitness Life</title>
+    <link rel="icon" type="image/png" th:href="@{/img/icons/logo-fl.png}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/admin-sidebar.css}">
+    <link rel="stylesheet" th:href="@{/css/admin-table.css}">
+    <link rel="stylesheet" th:href="@{/css/admin-knowledge.css}">
+</head>
+
+<body>
+    <th:block th:insert="~{fragments/navdashboard :: sidebar}"></th:block>
+
+    <div class="main-content">
+        <div class="container-fluid p-4" id="kbPage" th:data-api="@{/admin/knowledge}"
+            th:data-max-bytes="${maxFileBytes}">
+
+            <div id="kbAlerts"></div>
+
+            <h1 class="page-title">
+                Base de conocimiento
+            </h1>
+
+            <div class="kb-stat-grid">
+                <div class="kb-stat">
+                    <span class="kb-stat-label">Documentos indexados</span>
+                    <span id="kbStatDocuments" class="kb-stat-value">—</span>
+                </div>
+                <div class="kb-stat">
+                    <span class="kb-stat-label">Fragmentos</span>
+                    <span id="kbStatChunks" class="kb-stat-value">—</span>
+                </div>
+                <div class="kb-stat">
+                    <span class="kb-stat-label">Modelo de embeddings</span>
+                    <span id="kbStatModel" class="kb-stat-value kb-stat-value--small">—</span>
+                </div>
+                <div class="kb-stat">
+                    <span class="kb-stat-label">Índice de búsqueda</span>
+                    <span id="kbStatIndex" class="kb-stat-value kb-stat-value--small">—</span>
+                    <span id="kbStatIndexNote" class="kb-stat-note"></span>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <div class="card-body">
+
+                    <div class="d-flex align-items-center mb-4 flex-wrap gap-3">
+                        <p id="kbPending" class="mb-0">—</p>
+
+                        <div class="kb-toolbar-actions ms-auto d-flex gap-2 flex-wrap align-items-center">
+                            <button id="kbIngest" type="button" class="btn btn-filter">
+                                Indexar documentos
+                            </button>
+                            <button id="kbReindex" type="button" class="btn btn-clear">
+                                Reindexar todo
+                            </button>
+                            <button id="kbOpenUpload" type="button" class="btn btn-add-user" data-bs-toggle="modal"
+                                data-bs-target="#uploadModal">
+                                Subir documento
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-users align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Documento</th>
+                                    <th>Audiencia</th>
+                                    <th>Tamaño</th>
+                                    <th>Estado</th>
+                                    <th>Fragmentos</th>
+                                    <th>Última indexación</th>
+                                    <th class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="kbTableBody"></tbody>
+                        </table>
+                    </div>
+                    <p id="kbEmpty" class="kb-empty">Cargando documentos…</p>
+
+                    <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-3">
+                        <div class="text-muted">
+                            Mostrando <strong id="kbCount">0</strong> documentos
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content modal-bodytec">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="uploadModalLabel">Subir documento</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="kbUploadForm" novalidate>
+                    <div class="modal-body">
+                        <div id="kbModalError" class="alert alert-danger py-2 small" role="alert" hidden></div>
+
+                        <input id="kbFile" class="kb-file-input" type="file" accept=".pdf,.md,.txt,.html">
+                        <label id="kbDropzone" class="kb-dropzone" for="kbFile">
+                            <i class="bi bi-file-earmark-arrow-up" aria-hidden="true"></i>
+                            <span class="kb-dropzone-text">Arrastra un archivo aquí o haz clic para elegirlo</span>
+                            <span class="kb-dropzone-hint">
+                                PDF, Markdown, texto o HTML · máximo <span th:text="${maxFileMb}">5</span> MB
+                            </span>
+                            <span id="kbFileLabel" class="kb-file-label" hidden></span>
+                        </label>
+
+                        <div class="mb-3">
+                            <label for="kbAudience" class="form-label">¿Quién podrá recibir esta información? *</label>
+                            <select id="kbAudience" class="form-select" required>
+                                <option value="" selected disabled>Seleccionar...</option>
+                                <option value="ALL">Todos los usuarios</option>
+                                <option value="TRAINER">Solo entrenadores y administradores</option>
+                                <option value="ADMIN">Solo administradores</option>
+                            </select>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="kbAutoIndex" checked>
+                            <label class="form-check-label" for="kbAutoIndex">Indexar al terminar de subir</label>
+                        </div>
+
+                        <p class="kb-notice mb-0">
+                            <i class="bi bi-info-circle" aria-hidden="true"></i>
+                            Al indexar, el contenido se envía al proveedor de embeddings y, cuando una pregunta lo
+                            requiere, fragmentos del documento se envían al modelo de lenguaje. No subas información que
+                            no deba salir del sistema.
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="kbCancelUpload" class="btn btn-secondary-modal"
+                            data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" id="kbUpload" class="btn btn-primary-modal" disabled>Subir
+                            documento</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content modal-bodytec">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="resultModalLabel">Resultado de la indexación</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="kbResultSummary" class="mb-0"></p>
+                    <ul id="kbResultList" class="kb-result-list"></ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary-modal" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/chat-widget :: chat-widget}"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/admin-knowledge.js}"></script>
+</body>
+
+</html>

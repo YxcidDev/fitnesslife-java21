@@ -200,6 +200,13 @@ span {
     -webkit-appearance: none;
 }
 
+.sidebar .sidebar-footer .footer-btn {
+    width: 100%;
+    margin: 0;
+    border: 1px solid transparent;
+    cursor: pointer;
+}
+
 .sidebar-footer button.footer-btn.logout {
     border: 1px solid var(--border-color);
 }

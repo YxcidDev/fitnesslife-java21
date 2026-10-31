@@ -22,7 +22,8 @@
                 <h1 class="section-title">Mis clases asignadas</h1>
             </div>
 
-            <div class="summary-grid">
+            <div class="summary-grid" data-fill-grid data-placeholder-icon="bi-bar-chart-line"
+                 data-placeholder-title="Sin más datos por ahora">
                 <div class="summary-card">
                     <span class="badge-confirmed">Hoy</span>
                     <p class="summary-value" th:text="${classesToday}">0</p>
@@ -68,7 +69,9 @@
                 <p>No tienes clases para este filtro.</p>
             </div>
 
-            <div class="classes-grid">
+            <div class="classes-grid" data-fill-grid data-placeholder-icon="bi-calendar2-plus"
+                 data-placeholder-title="Espacio para más clases"
+                 data-placeholder-text="Las clases que te asigne el administrador aparecerán aquí">
                 <article class="class-card" th:each="c, stat : ${classes}">
 
                     <span class="badge-confirmed"
@@ -146,9 +149,11 @@
     </main>
 
     <div th:replace="~{fragments/bottom-navbar :: bottom-navbar}"></div>
+    <div th:replace="~{fragments/chat-widget :: chat-widget}"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script th:src="@{/js/active-gym-count.js}"></script>
+    <script th:src="@{/js/trainer-profile.js}"></script>
 </body>
 
 </html>
