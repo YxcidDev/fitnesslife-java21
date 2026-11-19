@@ -1,0 +1,258 @@
+.retention-subtitle {
+    color: var(--text-gray);
+    font-size: 0.9rem;
+}
+
+.retention-panel {
+    min-height: auto;
+    margin-bottom: 1.5rem;
+}
+
+.retention-stat-sub {
+    font-size: 0.78rem;
+    color: var(--text-gray);
+    margin-top: 0.35rem;
+}
+
+.retention-stat-sub strong {
+    color: var(--text-white);
+}
+
+.retention-stat-value--sm {
+    font-size: 1.35rem;
+    line-height: 1.2;
+}
+
+.retention-label {
+    display: block;
+    color: var(--text-gray);
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+}
+
+.retention-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    color: var(--text-white);
+    border-radius: 4px;
+    padding: 0.5rem 0.75rem;
+    transition: all 0.3s;
+    color-scheme: dark;
+}
+
+.retention-input:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(235, 102, 8, 0.25);
+}
+
+.retention-input--sm {
+    width: 100px;
+    padding: 0.35rem 0.6rem;
+}
+
+.retention-help {
+    color: var(--text-gray);
+    opacity: 0.75;
+    font-size: 0.75rem;
+    margin-top: 0.3rem;
+}
+
+.retention-check-label {
+    color: var(--text-gray);
+    font-size: 0.85rem;
+}
+
+.form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.retention-table {
+    margin-top: 0;
+}
+
+.retention-table tfoot td {
+    border-top: 1px solid var(--border-color);
+    font-weight: 700;
+}
+
+.retention-scroll {
+    max-height: 440px;
+    overflow-y: auto;
+}
+
+.retention-scroll thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.retention-zero {
+    color: var(--text-gray);
+    opacity: 0.5;
+}
+
+.retention-positive {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+.retention-binding {
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.retention-slack {
+    color: var(--text-gray);
+    font-size: 0.85rem;
+}
+
+.retention-alert {
+    border-radius: 4px;
+    padding: 0.9rem 1.1rem;
+    margin-bottom: 1.25rem;
+    border-left: 4px solid transparent;
+    background: var(--card-bg);
+    color: var(--text-white);
+    font-size: 0.9rem;
+}
+
+.retention-alert div + div {
+    margin-top: 0.35rem;
+}
+
+.retention-alert--error {
+    border-left-color: #e74c3c;
+}
+
+.retention-alert--warn {
+    border-left-color: #f39c12;
+}
+
+.retention-alert--info {
+    border-left-color: var(--primary-color);
+}
+
+.retention-note {
+    color: var(--text-gray);
+    font-size: 0.88rem;
+    font-style: italic;
+}
+
+.retention-campaign-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.retention-campaign-link:hover {
+    color: var(--hover-primary);
+    text-decoration: underline;
+}
+
+.retention-action-badge {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.retention-action-reminder {
+    color: var(--text-gray);
+}
+
+.retention-action-promotion {
+    color: var(--primary-color);
+}
+
+.retention-action-class {
+    color: #1abc9c;
+}
+
+.retention-status-select {
+    min-width: 130px;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.85rem;
+}
+
+.retention-dispatch {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+}
+
+.retention-dispatch-status {
+    color: var(--text-white);
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+
+.retention-dispatch-counts {
+    color: var(--text-gray);
+    font-size: 0.82rem;
+}
+
+.retention-progress {
+    height: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+}
+
+.retention-progress .progress-bar {
+    background-color: var(--primary-color);
+    font-size: 0.65rem;
+}
+
+.retention-launch-list {
+    color: var(--text-white);
+    padding-left: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+.retention-launch-list li + li {
+    margin-top: 0.4rem;
+}
+
+.retention-launch-list strong {
+    color: var(--primary-color);
+}
+
+.retention-delivery {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-gray);
+}
+
+.retention-delivery--sent {
+    color: #2ecc71;
+}
+
+.retention-delivery--queued,
+.retention-delivery--sending {
+    color: #f39c12;
+}
+
+.retention-delivery--failed {
+    color: #e74c3c;
+}
+
+.retention-delivery--skipped,
+.retention-delivery--cancelled,
+.retention-delivery--not_sent {
+    color: var(--text-gray);
+    opacity: 0.8;
+}
+
+.row > [class*="col-"] > .churn-stat-card {
+    height: 100%;
+}
+
+.retention-stat-sub {
+    display: block;
+    overflow-wrap: anywhere;
+}

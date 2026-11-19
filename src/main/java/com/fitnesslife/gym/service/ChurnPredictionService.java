@@ -216,7 +216,10 @@ public class ChurnPredictionService {
         result.setEmail(user.getEmail());
         result.setPhone(user.getPhone());
 
-        String planName = normalizePlan(user.getPlan());
+        PaymentFeatures pay = payMap.getOrDefault(user.getId(), emptyPayFeatures(user.getId()));
+
+        String planName = normalizePlan(
+                pay.getLastPlanName() != null ? pay.getLastPlanName() : user.getPlan());
         int planLevel = resolvePlanLevel(planName);
         result.setPlan(planName);
         result.setPlanLevel(planLevel);
@@ -231,7 +234,6 @@ public class ChurnPredictionService {
         result.setAvgSessionMinutes(avgSessionMinutes);
         result.setDaysSinceLastAtt(daysSinceLastAtt);
 
-        PaymentFeatures pay = payMap.getOrDefault(user.getId(), emptyPayFeatures(user.getId()));
         int nPayments = pay.getNPayments();
         long daysSinceLastPayment = pay.getLastValidUntil() != null
                 ? Math.max(0L, ChronoUnit.DAYS.between(pay.getLastValidUntil(), now))

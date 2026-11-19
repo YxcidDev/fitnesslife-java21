@@ -59,6 +59,7 @@ public class SecurityConfig {
                         .requestMatchers("/trainings/**").hasRole("ADMIN")
 
                         .requestMatchers("/api/churn/**").hasRole("ADMIN")
+                        .requestMatchers("/api/retention/**").hasRole("ADMIN")
                         .requestMatchers("/attendance/kiosk").hasRole("ADMIN")
                         .requestMatchers("/api/attendance/verify").hasRole("ADMIN")
                         .requestMatchers("/api/attendance/active-count").hasAnyRole("USER", "ADMIN")
@@ -118,7 +119,7 @@ public class SecurityConfig {
 
         @Override
         public void handle(HttpServletRequest request, HttpServletResponse response,
-                Supplier<CsrfToken> csrfToken) {
+                           Supplier<CsrfToken> csrfToken) {
             this.delegate.handle(request, response, csrfToken);
         }
 
@@ -134,7 +135,7 @@ public class SecurityConfig {
     private static final class CsrfCookieFilter extends OncePerRequestFilter {
         @Override
         protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-                FilterChain filterChain) throws ServletException, IOException {
+                                        FilterChain filterChain) throws ServletException, IOException {
             CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
             csrfToken.getToken();
             filterChain.doFilter(request, response);

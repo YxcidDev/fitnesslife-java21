@@ -25,7 +25,7 @@
   </div>
 
   <ul class="sidebar-menu">
-    <li class="menu-item">
+    <!--<li class="menu-item">
       <a
         href="/dashboard"
         class="menu-link"
@@ -33,6 +33,15 @@
       >
         <i class="bi bi-house-door-fill"></i>
         <span>Panel</span>
+      </a>
+    </li>-->
+    <li class="menu-item">
+      <a
+              href="/admin/bi"
+              class="menu-link"
+              th:classappend="${currentPage == 'bi'} ? 'active'">
+        <i class="bi bi-bar-chart-line-fill"></i>
+        <span>BI</span>
       </a>
     </li>
     <li class="menu-item">
@@ -84,6 +93,12 @@
       </a>
     </li>
     <li class="menu-item">
+      <a href="/admin/retention/history" class="menu-link">
+        <i class="bi-arrow-repeat"></i>
+        <span>Campañas de retención</span>
+      </a>
+    </li>
+    <li class="menu-item">
       <a
         href="/attendance/kiosk"
         class="menu-link menu-link--kiosk"
@@ -102,7 +117,7 @@
         class="menu-link"
         th:classappend="${currentPage == 'knowledge'} ? 'active'"
       >
-        <i class="bi bi-journal-bookmark-fill"></i>
+        <i class="bi bi-book-fill"></i>
         <span>Base de conocimiento</span>
       </a>
     </li>

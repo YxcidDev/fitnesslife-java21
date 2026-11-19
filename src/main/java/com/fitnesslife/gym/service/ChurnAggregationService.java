@@ -3,6 +3,7 @@ package com.fitnesslife.gym.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -76,18 +77,22 @@ public class ChurnAggregationService {
         log.debug("[ChurnAgg] Calculando features de pagos para {} usuarios", userIds.size());
 
         MatchOperation match = Aggregation.match(
-                Criteria.where("userId").in(userIds).and("status").is("ACCEPTED"));
+                Criteria.where("userId").in(userIds).and("status").in("ACCEPTED", "EXPIRED"));
+
+        SortOperation sort = Aggregation.sort(Sort.Direction.ASC, "validUntil");
 
         GroupOperation group = Aggregation.group("userId")
                 .count().as("nPayments")
-                .max("validUntil").as("lastValidUntil");
+                .max("validUntil").as("lastValidUntil")
+                .last("planName").as("lastPlanName");
 
         ProjectionOperation project = Aggregation.project()
                 .and("_id").as("userId")
                 .and("nPayments").as("nPayments")
-                .and("lastValidUntil").as("lastValidUntil");
+                .and("lastValidUntil").as("lastValidUntil")
+                .and("lastPlanName").as("lastPlanName");
 
-        Aggregation pipeline = Aggregation.newAggregation(match, group, project);
+        Aggregation pipeline = Aggregation.newAggregation(match, sort, group, project);
 
         List<Document> results = mongoTemplate
                 .aggregate(pipeline, "payments", Document.class)
@@ -102,6 +107,7 @@ public class ChurnAggregationService {
             PaymentFeatures f = new PaymentFeatures();
             f.setUserId(uid);
             f.setNPayments(doc.getInteger("nPayments", 0));
+            f.setLastPlanName(doc.getString("lastPlanName"));
             f.setLastValidUntil(doc.getDate("lastValidUntil") != null
                     ? doc.getDate("lastValidUntil").toInstant()
                             .atZone(java.time.ZoneId.systemDefault()).toLocalDateTime()
@@ -126,6 +132,7 @@ public class ChurnAggregationService {
     public static class PaymentFeatures {
         private String userId;
         private int nPayments;
+        private String lastPlanName;
         private java.time.LocalDateTime lastValidUntil;
     }
 }

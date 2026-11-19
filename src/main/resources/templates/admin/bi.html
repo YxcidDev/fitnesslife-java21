@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BI | Fitness Life</title>
+    <link rel="icon" type="image/png" th:href="@{/img/icons/logo-fl.png}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
+          rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/admin-sidebar.css}">
+    <link rel="stylesheet" th:href="@{/css/admin-bi.css}">
+</head>
+
+<body class="bi-page">
+
+<th:block th:insert="~{fragments/navdashboard :: sidebar}"></th:block>
+
+<main class="main-content"
+      th:with="reportUrl='https://app.powerbi.com/view?r=eyJrIjoiNGMxNmY1YzItM2ZkNC00NGE4LWIwZDYtMmM3Nzg4MzlhYjcwIiwidCI6IjlkMTJiZjNmLWU0ZjYtNDdhYi05MTJmLTFhMmYwZmM0OGFhNCIsImMiOjR9'">
+
+    <section class="bi-report" id="biReport">
+
+        <div class="bi-loader" id="biLoader" role="status" aria-live="polite">
+            <div class="spinner-border" aria-hidden="true"></div>
+            <span>Cargando dashboard…</span>
+        </div>
+
+        <iframe id="biFrame"
+                title="DASHBOARD_FITNESS_LIFE"
+                th:src="${reportUrl}">
+        </iframe>
+
+        <div class="bi-tools">
+            <a th:href="${reportUrl}"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="bi-tool"
+               title="Abrir el reporte en una pestaña nueva"
+               aria-label="Abrir el reporte en una pestaña nueva">
+                <i class="bi bi-box-arrow-up-right"></i>
+            </a>
+            <button type="button"
+                    class="bi-tool"
+                    id="biFullscreenBtn"
+                    title="Pantalla completa"
+                    aria-label="Pantalla completa">
+                <i class="bi bi-fullscreen" id="biFullscreenIcon"></i>
+            </button>
+        </div>
+
+    </section>
+
+</main>
+
+<div th:replace="~{fragments/chat-widget :: chat-widget}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/admin-bi.js}" defer></script>
+
+</body>
+</html>

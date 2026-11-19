@@ -26,6 +26,12 @@ public class DashboardController {
         return VIEW_DASHBOARD;
     }
 
+    @GetMapping("/admin/bi")
+    public String businessIntelligence(Model model) {
+        model.addAttribute("currentPage", "bi");
+        return "admin/bi";
+    }
+
     @GetMapping("/api/dashboard/metrics")
     @ResponseBody
     public Map<String, Object> getDashboardMetrics() {

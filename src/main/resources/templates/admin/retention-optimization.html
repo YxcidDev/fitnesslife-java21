@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optimización de retención | Fitness Life</title>
+    <link rel="icon" type="image/png" th:href="@{/img/icons/logo-fl.png}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/admin-sidebar.css}">
+    <link rel="stylesheet" th:href="@{/css/admin-table.css}">
+    <link rel="stylesheet" th:href="@{/css/churn.css}">
+    <link rel="stylesheet" th:href="@{/css/retention.css}">
+</head>
+<body>
+<th:block th:insert="~{fragments/navdashboard :: sidebar}"></th:block>
+
+<div class="main-content">
+    <div class="container-fluid p-4">
+
+        <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+            <div>
+                <h1 class="page-title mb-1">Optimización de retención</h1>
+                <p class="retention-subtitle mb-0">
+                    Distribuye presupuesto, cupos y capacidad operativa entre los usuarios en riesgo
+                    para maximizar el beneficio neto esperado.
+                </p>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <a th:href="@{/admin/retention/history}" class="btn btn-action px-4">
+                    Historial
+                </a>
+                <a th:href="@{/admin/churn}" class="btn btn-action px-4">
+                    Usuarios en riesgo
+                </a>
+            </div>
+        </div>
+
+        <div id="alertBox" class="retention-alert retention-alert--error d-none" role="alert"></div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="churn-stat-card">
+                    <div class="churn-stat-body">
+                        <span class="churn-stat-value" id="segCandidates2">—</span>
+                        <span class="churn-stat-label">Riesgo alto, candidatos</span>
+                        <span class="retention-stat-sub">Valor de retener: <strong id="segValue2">—</strong></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="churn-stat-card">
+                    <div class="churn-stat-body">
+                        <span class="churn-stat-value" id="segCandidates1">—</span>
+                        <span class="churn-stat-label">Riesgo medio, candidatos</span>
+                        <span class="retention-stat-sub">Valor de retener: <strong id="segValue1">—</strong></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="churn-stat-card">
+                    <div class="churn-stat-body">
+                        <span class="churn-stat-value" id="segCandidates0">—</span>
+                        <span class="churn-stat-label">Riesgo bajo, candidatos</span>
+                        <span class="retention-stat-sub">Valor de retener: <strong id="segValue0">—</strong></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="churn-stat-card">
+                    <div class="churn-stat-body">
+                        <span class="churn-stat-value retention-stat-value--sm" id="avgPrice">—</span>
+                        <span class="churn-stat-label">Precio promedio de planes</span>
+                        <span class="retention-stat-sub">Base del descuento (c₂)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form id="optForm" class="table-container retention-panel" novalidate>
+
+            <p class="churn-section-title">Recursos y políticas</p>
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label class="retention-label" for="budget">Presupuesto mensual B (COP)</label>
+                    <input class="retention-input" type="number" min="0" step="1000" id="budget" required>
+                </div>
+                <div class="col-md-2">
+                    <label class="retention-label" for="classSlots">Cupos de clase S</label>
+                    <input class="retention-input" type="number" min="0" step="1" id="classSlots" required>
+                    <div class="retention-help">Precargado con los cupos libres reales; puedes reservar menos, no más.</div>
+                </div>
+                <div class="col-md-3">
+                    <label class="retention-label" for="maxPromotions">Máx. promociones D</label>
+                    <input class="retention-input" type="number" min="0" step="1" id="maxPromotions" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="retention-label" for="maxReminders">Máx. recordatorios M</label>
+                    <input class="retention-input" type="number" min="0" step="1" id="maxReminders" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="retention-label" for="minHighRiskCoverage">Cobertura mínima riesgo alto α (%)</label>
+                    <input class="retention-input" type="number" min="0" max="100" step="1" id="minHighRiskCoverage" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="retention-label" for="minConfidence">Confianza mínima de la predicción (%)</label>
+                    <input class="retention-input" type="number" min="0" max="100" step="1" id="minConfidence" required>
+                    <div class="retention-help">Solo se consideran candidatos con confianza igual o superior.</div>
+                </div>
+            </div>
+
+            <p class="churn-section-title">Costos y valor de retención</p>
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label class="retention-label" for="reminderCost">Recordatorio c₁ (COP)</label>
+                    <input class="retention-input" type="number" min="0" step="50" id="reminderCost" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="retention-label" for="discountRate">Descuento de promoción (%) → c₂</label>
+                    <input class="retention-input" type="number" min="0" max="100" step="1" id="discountRate" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="retention-label" for="classCost">Cupo de clase grupal c₃ (COP)</label>
+                    <input class="retention-input" type="number" min="0" step="100" id="classCost" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="retention-label">Meses adicionales esperados (bajo, medio y alto)</label>
+                    <div class="d-flex gap-2">
+                        <input class="retention-input" type="number" min="0" step="0.5" id="months0" required>
+                        <input class="retention-input" type="number" min="0" step="0.5" id="months1" required>
+                        <input class="retention-input" type="number" min="0" step="0.5" id="months2" required>
+                    </div>
+                </div>
+            </div>
+
+            <p class="churn-section-title">Aumento de probabilidad de retención p<sub>ij</sub> (puntos porcentuales)</p>
+            <div class="table-responsive mb-4">
+                <table class="table table-users retention-table align-middle w-auto">
+                    <thead>
+                    <tr><th></th><th>Recordatorio</th><th>Promoción</th><th>Clase grupal</th></tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="seg, s : ${ {'Riesgo bajo','Riesgo medio','Riesgo alto'} }">
+                        <td class="fw-bold" th:text="${seg}"></td>
+                        <td th:each="j : ${ {0,1,2} }">
+                            <input class="retention-input retention-input--sm" type="number"
+                                   min="0" max="100" step="0.5" required
+                                   th:id="${'p' + s.index + j}">
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <button type="submit" class="btn btn-filter px-4" id="runBtn">
+                    Calcular asignación óptima
+                </button>
+                <button type="button" class="btn btn-clear" id="resetBtn">Restablecer valores</button>
+                <div class="form-check ms-md-auto">
+                    <input class="form-check-input" type="checkbox" id="integerMode" checked>
+                    <label class="form-check-label retention-check-label" for="integerMode">
+                        Solución entera exacta (desmarcar = relajación continua)
+                    </label>
+                </div>
+            </div>
+        </form>
+
+        <section id="results" class="d-none">
+
+            <div class="row g-3 mb-4">
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="churn-stat-card churn-stat-card--pct">
+                        <div class="churn-stat-body">
+                            <span class="churn-stat-value retention-stat-value--sm" id="resStatus">—</span>
+                            <span class="churn-stat-label">Estado del solver</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="churn-stat-card churn-stat-card--low">
+                        <div class="churn-stat-body">
+                            <span class="churn-stat-value retention-stat-value--sm" id="resObjective">—</span>
+                            <span class="churn-stat-label">Beneficio neto esperado / mes</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="churn-stat-card churn-stat-card--medium">
+                        <div class="churn-stat-body">
+                            <span class="churn-stat-value retention-stat-value--sm" id="resCost">—</span>
+                            <span class="churn-stat-label">Costo total / presupuesto</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="churn-stat-card churn-stat-card--high">
+                        <div class="churn-stat-body">
+                            <span class="churn-stat-value retention-stat-value--sm" id="resUsers">0</span>
+                            <span class="churn-stat-label">Usuarios intervenidos</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="resMessages" class="d-none"></div>
+
+            <div id="savePanel" class="table-container retention-panel d-none">
+                <p class="churn-section-title">Guardar en el historial</p>
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="retention-label" for="campaignName">Nombre de la campaña</label>
+                        <input class="retention-input" type="text" id="campaignName" maxlength="80"
+                               placeholder="Ej. Retención de noviembre">
+                    </div>
+                    <div class="col-md-5">
+                        <label class="retention-label" for="campaignNotes">Notas (opcional)</label>
+                        <input class="retention-input" type="text" id="campaignNotes" maxlength="500"
+                               placeholder="Contexto, decisiones o aprobación">
+                    </div>
+                    <div class="col-md-3 d-grid">
+                        <button type="button" class="btn btn-filter" id="saveBtn">
+                            Guardar asignaciones
+                        </button>
+                    </div>
+                </div>
+                <p class="retention-help mt-3 mb-0">
+                    Queda registrado con los parámetros usados, el resultado del modelo y la situación de cada
+                    usuario en este momento. Si no la guardas, el resultado se descarta solo en un par de horas.
+                </p>
+                <div id="saveResult" class="d-none mt-3"></div>
+            </div>
+
+            <div class="table-container retention-panel">
+                <p class="churn-section-title">Asignación x<sub>ij</sub>: usuarios por segmento y acción</p>
+                <div class="table-responsive">
+                    <table class="table table-users retention-table align-middle" id="allocTable"></table>
+                </div>
+            </div>
+
+            <div class="table-container retention-panel">
+                <p class="churn-section-title">Uso de restricciones y precios sombra</p>
+                <div class="table-responsive">
+                    <table class="table table-users retention-table align-middle">
+                        <thead>
+                        <tr>
+                            <th>Restricción</th>
+                            <th class="text-end">Uso</th>
+                            <th class="text-end">Límite</th>
+                            <th>Estado</th>
+                            <th class="text-end">Precio sombra</th>
+                        </tr>
+                        </thead>
+                        <tbody id="constraintsBody"></tbody>
+                    </table>
+                </div>
+                <p class="retention-help mt-3 mb-0">
+                    El precio sombra indica cuánto aumentaría el beneficio neto por cada unidad adicional del recurso
+                    (calculado sobre la relajación lineal). Una restricción activa con precio sombra alto es el mejor
+                    lugar para invertir más recurso.
+                </p>
+            </div>
+
+            <div class="table-container retention-panel">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+                    <p class="churn-section-title mb-0">Usuarios recomendados por acción</p>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <select id="actionFilter" class="form-select filter-select">
+                            <option value="">Todas las acciones</option>
+                            <option value="REMINDER">Recordatorio</option>
+                            <option value="PROMOTION">Promoción</option>
+                            <option value="CLASS_INVITE">Clase grupal</option>
+                        </select>
+                        <button type="button" id="csvBtn" class="btn btn-action px-3">
+                            Exportar CSV
+                        </button>
+                    </div>
+                </div>
+                <div class="table-responsive retention-scroll">
+                    <table class="table table-users retention-table align-middle">
+                        <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Teléfono</th>
+                            <th>Plan</th>
+                            <th>Riesgo</th>
+                            <th>Confianza</th>
+                            <th>Acción recomendada</th>
+                        </tr>
+                        </thead>
+                        <tbody id="assignBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<div th:replace="~{fragments/chat-widget :: chat-widget}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/retention-optimization.js}"></script>
+</body>
+</html>

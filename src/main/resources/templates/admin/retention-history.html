@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial de retención | Fitness Life</title>
+    <link rel="icon" type="image/png" th:href="@{/img/icons/logo-fl.png}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/admin-sidebar.css}">
+    <link rel="stylesheet" th:href="@{/css/admin-table.css}">
+    <link rel="stylesheet" th:href="@{/css/churn.css}">
+    <link rel="stylesheet" th:href="@{/css/retention.css}">
+</head>
+<body>
+<th:block th:insert="~{fragments/navdashboard :: sidebar}"></th:block>
+
+<div class="main-content">
+    <div class="container-fluid p-4">
+
+        <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+            <div>
+                <h1 class="page-title mb-1">Historial de retención</h1>
+                <p class="retention-subtitle mb-0">
+                    Registro de las campañas aprobadas y de la acción asignada a cada usuario.
+                </p>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <a th:href="@{/admin/retention}" class="btn btn-action px-4">
+                    Optimizar retención
+                </a>
+                <a th:href="@{/admin/churn}" class="btn btn-action px-4">
+                    Usuarios en riesgo
+                </a>
+            </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(campaigns)}" class="table-container">
+            <div class="card-body text-center py-5">
+                <h5 style="color: var(--text-white);">Aún no hay campañas guardadas</h5>
+                <p style="color: var(--text-gray);" class="mb-4">
+                    Calcula una asignación óptima y pulsa
+                    <strong style="color: var(--primary-color);">Guardar asignaciones</strong>
+                    para que quede registrada aquí.
+                </p>
+                <a th:href="@{/admin/retention}" class="btn btn-action px-5">
+                    Optimizar retención
+                </a>
+            </div>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(campaigns)}">
+
+            <div th:if="${selectedCampaign != null}" class="mb-4">
+                <div class="row g-3 mb-3">
+                    <div class="col-12 col-sm-6 col-xl-3">
+                        <div class="churn-stat-card">
+                            <div class="churn-stat-body">
+                                    <span class="churn-stat-value retention-stat-value--sm"
+                                          th:text="'$' + ${#numbers.formatDecimal(selectedCampaign.objectiveValue, 1, 'POINT', 0, 'COMMA')}">$0</span>
+                                <span class="churn-stat-label">Beneficio neto esperado / mes</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6 col-xl-3">
+                        <div class="churn-stat-card">
+                            <div class="churn-stat-body">
+                                    <span class="churn-stat-value retention-stat-value--sm"
+                                          th:text="'$' + ${#numbers.formatDecimal(selectedCampaign.totalCost, 1, 'POINT', 0, 'COMMA')}
+                                                   + ' / $' + ${#numbers.formatDecimal(selectedCampaign.budget, 1, 'POINT', 0, 'COMMA')}">$0</span>
+                                <span class="churn-stat-label">Costo total / presupuesto</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6 col-xl-3">
+                        <div class="churn-stat-card">
+                            <div class="churn-stat-body">
+                                <span class="churn-stat-value retention-stat-value--sm" th:text="${selectedCampaign.assignmentCount}">0</span>
+                                <span class="churn-stat-label">Usuarios intervenidos</span>
+                                <span class="retention-stat-sub"
+                                      th:text="${selectedCampaign.reminderCount} + ' recordatorios · '
+                                                   + ${selectedCampaign.promotionCount} + ' promociones · '
+                                                   + ${selectedCampaign.classInviteCount} + ' clases'"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6 col-xl-3">
+                        <div class="churn-stat-card churn-stat-card--pct">
+                            <div class="churn-stat-body">
+                                    <span class="churn-stat-value retention-stat-value--sm"
+                                          th:text="${selectedCampaign.name}">Campaña</span>
+                                <span class="churn-stat-label">Guardada por</span>
+                                <span class="retention-stat-sub">
+                                        <strong th:text="${selectedCampaign.savedBy}"></strong>
+                                        · <span th:text="${#temporals.format(selectedCampaign.savedAt, 'dd/MM/yyyy HH:mm')}"></span>
+                                    </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="dispatchPanel" class="retention-dispatch mb-3"
+                     th:attr="data-campaign-id=${selectedCampaign.id}, data-status=${selectedCampaign.effectiveDispatchStatus().name()}, data-auto-launch=${autoLaunch}">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                        <div>
+                            <p class="churn-section-title mb-1">Lanzamiento de la campaña</p>
+                            <span class="retention-dispatch-status" id="dispatchStatusLabel">Sin lanzar</span>
+                            <span class="retention-stat-sub d-block" id="dispatchMeta"></span>
+                        </div>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button type="button" class="btn btn-action px-4" id="launchBtn" hidden>
+                                Lanzar campaña
+                            </button>
+                            <button type="button" class="btn btn-clear px-4" id="cancelDispatchBtn" hidden>
+                                Detener envío
+                            </button>
+                            <button type="button" class="btn btn-action px-4" id="retryBtn" hidden>
+                                Reintentar fallidos
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="dispatchProgress" class="mt-3" hidden>
+                        <div class="progress retention-progress" role="progressbar" aria-label="Progreso del envío">
+                            <div class="progress-bar" id="dispatchBar" style="width: 0%"></div>
+                        </div>
+                        <div class="retention-dispatch-counts mt-2" id="dispatchCounts"></div>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                    <p class="retention-note mb-0" th:if="${selectedCampaign.notes != null}"
+                       th:text="${selectedCampaign.notes}"></p>
+                    <span th:if="${selectedCampaign.notes == null}"></span>
+                    <button type="button" class="btn btn-action px-4"
+                            data-bs-toggle="modal" data-bs-target="#campaignModal">
+                        Ver parámetros y resultado del modelo
+                    </button>
+                </div>
+            </div>
+
+            <div th:if="${selectedCampaign == null and campaignFilter != ''}"
+                 class="retention-alert retention-alert--warn">
+                La campaña indicada no existe o aún no fue guardada.
+            </div>
+
+            <div class="table-container">
+                <div class="card-body">
+
+                    <div class="d-flex align-items-center mb-4 flex-wrap gap-3">
+                        <form method="get" th:action="@{/admin/retention/history}"
+                              class="d-flex gap-2 flex-wrap align-items-center w-100">
+                            <div class="position-relative search-input-wrapper">
+                                <input type="text" name="search" class="form-control search-input"
+                                       placeholder="Buscar usuario por nombre o correo..." th:value="${searchTerm}">
+                            </div>
+                            <select name="campaignId" class="form-select filter-select">
+                                <option value="">Todas las campañas</option>
+                                <option th:each="c : ${campaigns}"
+                                        th:value="${c.id}"
+                                        th:selected="${campaignFilter == c.id}"
+                                        th:text="${c.name} + ' · ' + ${#temporals.format(c.savedAt, 'dd/MM/yyyy')}"></option>
+                            </select>
+                            <select name="action" class="form-select filter-select">
+                                <option value="">Todas las acciones</option>
+                                <option value="REMINDER"     th:selected="${actionFilter == 'REMINDER'}">Recordatorio</option>
+                                <option value="PROMOTION"    th:selected="${actionFilter == 'PROMOTION'}">Promoción</option>
+                                <option value="CLASS_INVITE" th:selected="${actionFilter == 'CLASS_INVITE'}">Clase grupal</option>
+                            </select>
+                            <select name="risk" class="form-select filter-select">
+                                <option value="">Todos los riesgos</option>
+                                <option value="HIGH"   th:selected="${riskFilter == 'HIGH'}">Riesgo alto</option>
+                                <option value="MEDIUM" th:selected="${riskFilter == 'MEDIUM'}">Riesgo medio</option>
+                                <option value="LOW"    th:selected="${riskFilter == 'LOW'}">Riesgo bajo</option>
+                            </select>
+                            <select name="status" class="form-select filter-select">
+                                <option value="">Todos los estados</option>
+                                <option value="PENDING"   th:selected="${statusFilter == 'PENDING'}">Pendiente</option>
+                                <option value="EXECUTED"  th:selected="${statusFilter == 'EXECUTED'}">Ejecutada</option>
+                                <option value="DISCARDED" th:selected="${statusFilter == 'DISCARDED'}">Descartada</option>
+                            </select>
+                            <select name="delivery" class="form-select filter-select">
+                                <option value="">Todos los envíos</option>
+                                <option value="NOT_SENT"  th:selected="${deliveryFilter == 'NOT_SENT'}">Sin enviar</option>
+                                <option value="QUEUED"    th:selected="${deliveryFilter == 'QUEUED'}">En cola</option>
+                                <option value="SENT"      th:selected="${deliveryFilter == 'SENT'}">Enviado</option>
+                                <option value="FAILED"    th:selected="${deliveryFilter == 'FAILED'}">Fallido</option>
+                                <option value="SKIPPED"   th:selected="${deliveryFilter == 'SKIPPED'}">Omitido</option>
+                                <option value="CANCELLED" th:selected="${deliveryFilter == 'CANCELLED'}">Cancelado</option>
+                            </select>
+                            <button type="submit" class="btn btn-filter">Filtrar</button>
+                            <a th:href="@{/admin/retention/history}" class="btn btn-clear">Limpiar</a>
+                        </form>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-users align-middle" id="historyTable">
+                            <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Campaña</th>
+                                <th>Usuario</th>
+                                <th>Plan</th>
+                                <th>Riesgo</th>
+                                <th>Confianza</th>
+                                <th>Acción recomendada</th>
+                                <th>Estado</th>
+                                <th>Correo</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="a : ${assignments}">
+                                <td th:text="${#temporals.format(a.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+
+                                <td>
+                                    <a class="retention-campaign-link"
+                                       th:href="@{/admin/retention/history(campaignId=${a.campaignId})}"
+                                       th:text="${a.campaignName}"></a>
+                                </td>
+
+                                <td>
+                                    <p class="mb-0 fw-bold user-name" th:text="${a.name}"></p>
+                                    <small th:text="${a.email}"></small>
+                                    <small class="d-block" th:if="${a.phone != null}" th:text="${a.phone}"></small>
+                                </td>
+
+                                <td>
+                                            <span class="churn-plan-badge"
+                                                  th:classappend="${a.plan == 'Elite'} ? ' churn-plan-elite' :
+                                                                  (${a.plan == 'Premium'} ? ' churn-plan-premium' : ' churn-plan-basic')"
+                                                  th:text="${a.plan}"></span>
+                                </td>
+
+                                <td>
+                                            <span class="churn-risk-badge"
+                                                  th:classappend="${a.riskLevel == 'HIGH'} ? ' churn-risk-high' :
+                                                                  (${a.riskLevel == 'MEDIUM'} ? ' churn-risk-medium' : ' churn-risk-low')">
+                                                <span th:if="${a.riskLevel == 'HIGH'}">Alto</span>
+                                                <span th:if="${a.riskLevel == 'MEDIUM'}">Medio</span>
+                                                <span th:if="${a.riskLevel == 'LOW'}">Bajo</span>
+                                            </span>
+                                </td>
+
+                                <td>
+                                            <span class="churn-confidence-badge"
+                                                  th:text="${#numbers.formatDecimal(a.confidence, 1, 0)} + '%'"></span>
+                                </td>
+
+                                <td>
+                                            <span class="retention-action-badge"
+                                                  th:classappend="${a.action == 'PROMOTION'} ? ' retention-action-promotion' :
+                                                                  (${a.action == 'CLASS_INVITE'} ? ' retention-action-class' : ' retention-action-reminder')"
+                                                  th:text="${a.actionLabel}"></span>
+                                </td>
+
+                                <td>
+                                    <select class="form-select filter-select retention-status-select js-status-select"
+                                            th:attr="data-id=${a.id}, data-current=${a.status}"
+                                            aria-label="Estado de la acción">
+                                        <option value="PENDING"   th:selected="${a.status?.name() == 'PENDING'}">Pendiente</option>
+                                        <option value="EXECUTED"  th:selected="${a.status?.name() == 'EXECUTED'}">Ejecutada</option>
+                                        <option value="DISCARDED" th:selected="${a.status?.name() == 'DISCARDED'}">Descartada</option>
+                                    </select>
+                                </td>
+
+                                <td th:with="d=${a.effectiveDeliveryStatus().name()}">
+                                            <span class="retention-delivery"
+                                                  th:classappend="'retention-delivery--' + ${#strings.toLowerCase(d)}"
+                                                  th:title="${a.deliveryError}"
+                                                  th:text="${d == 'SENT'} ? 'Enviado' : (${d == 'QUEUED'} ? 'En cola' : (${d == 'SENDING'} ? 'Enviando' : (${d == 'FAILED'} ? 'Fallido' : (${d == 'SKIPPED'} ? 'Omitido' : (${d == 'CANCELLED'} ? 'Cancelado' : 'Sin enviar')))))"></span>
+                                    <small class="d-block" style="color: var(--text-gray);" th:if="${a.sentAt != null}"
+                                           th:text="${#temporals.format(a.sentAt, 'dd/MM HH:mm')}"></small>
+                                </td>
+                            </tr>
+
+                            <tr th:if="${#lists.isEmpty(assignments)}">
+                                <td colspan="9" class="text-center py-5" style="color: var(--text-gray);">
+                                    <i class="bi bi-search fs-2 d-block mb-2" style="color: var(--primary-color);"></i>
+                                    No se encontraron asignaciones con los filtros aplicados
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-3">
+                        <div class="pagination-info">
+                            Mostrando <strong th:text="${assignments.size()}"></strong>
+                            de <strong th:text="${totalItems}"></strong> asignaciones
+                        </div>
+
+                        <nav th:if="${totalPages > 1}">
+                            <ul class="pagination mb-0">
+                                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                    <a class="page-link"
+                                       th:href="@{/admin/retention/history(page=0, campaignId=${campaignFilter}, action=${actionFilter}, risk=${riskFilter}, status=${statusFilter}, delivery=${deliveryFilter}, search=${searchTerm})}">
+                                        <i class="bi bi-chevron-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                    <a class="page-link"
+                                       th:href="@{/admin/retention/history(page=${currentPage - 1}, campaignId=${campaignFilter}, action=${actionFilter}, risk=${riskFilter}, status=${statusFilter}, delivery=${deliveryFilter}, search=${searchTerm})}">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item"
+                                    th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                                    th:if="${i >= currentPage - 2 && i <= currentPage + 2}"
+                                    th:classappend="${i == currentPage} ? 'active'">
+                                    <a class="page-link"
+                                       th:href="@{/admin/retention/history(page=${i}, campaignId=${campaignFilter}, action=${actionFilter}, risk=${riskFilter}, status=${statusFilter}, delivery=${deliveryFilter}, search=${searchTerm})}"
+                                       th:text="${i + 1}">1</a>
+                                </li>
+                                <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+                                    <a class="page-link"
+                                       th:href="@{/admin/retention/history(page=${currentPage + 1}, campaignId=${campaignFilter}, action=${actionFilter}, risk=${riskFilter}, status=${statusFilter}, delivery=${deliveryFilter}, search=${searchTerm})}">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+                                    <a class="page-link"
+                                       th:href="@{/admin/retention/history(page=${totalPages - 1}, campaignId=${campaignFilter}, action=${actionFilter}, risk=${riskFilter}, status=${statusFilter}, delivery=${deliveryFilter}, search=${searchTerm})}">
+                                        <i class="bi bi-chevron-double-right"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:if="${selectedCampaign != null}" class="modal fade" id="campaignModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content modal-bodytec"
+             th:with="c=${selectedCampaign}, p=${selectedCampaign.parameters}">
+            <div class="modal-header">
+                <h5 class="modal-title" th:text="${c.name}">Campaña</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+
+                <p class="churn-section-title">Parámetros utilizados</p>
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-md-3"><div class="churn-metric-card">
+                        <span class="churn-metric-label">Presupuesto B</span>
+                        <span class="churn-metric-value" th:text="'$' + ${#numbers.formatDecimal(p.budget, 1, 'POINT', 0, 'COMMA')}"></span>
+                    </div></div>
+                    <div class="col-6 col-md-3"><div class="churn-metric-card">
+                        <span class="churn-metric-label">Cupos de clase S (aplicados)</span>
+                        <span class="churn-metric-value" th:text="${p.classSlotsApplied} + ' de ' + ${p.classSlotsRequested} + ' pedidos'"></span>
+                    </div></div>
+                    <div class="col-6 col-md-3"><div class="churn-metric-card">
+                        <span class="churn-metric-label">Máx. promociones D</span>
+                        <span class="churn-metric-value" th:text="${p.maxPromotions}"></span>
+                    </div></div>
+                    <div class="col-6 col-md-3"><div class="churn-metric-card">
+                        <span class="churn-metric-label">Máx. recordatorios M</span>
+                        <span class="churn-metric-value" th:text="${p.maxReminders}"></span>
+                    </div></div>
+                    <div class="col-6 col-md-3"><div class="churn-metric-card">
+                        <span class="churn-metric-label">Cobertura riesgo alto α</span>
+                        <span class="churn-metric-value" th:text="${#numbers.formatDecimal(p.minHighRiskCoverage * 100, 1, 0)} + '%'"></span>
+                    </div></div>
+                    <div class="col-6 col-md-3"><div class="churn-metric-card">
+                        <span class="churn-metric-label">Confianza mínima</span>
+                        <span class="churn-metric-value" th:text="${#numbers.formatDecimal(p.minConfidence, 1, 0)} + '%'"></span>
+                    </div></div>
+                    <div class="col-6 col-md-3"><div class="churn-metric-card">
+                        <span class="churn-metric-label">Precio promedio de planes</span>
+                        <span class="churn-metric-value" th:text="'$' + ${#numbers.formatDecimal(p.averagePlanPrice, 1, 'POINT', 0, 'COMMA')}"></span>
+                    </div></div>
+                    <div class="col-6 col-md-3"><div class="churn-metric-card">
+                        <span class="churn-metric-label">Modo de solución</span>
+                        <span class="churn-metric-value" th:text="${p.integerMode} ? 'Entera exacta' : 'Relajación continua'"></span>
+                    </div></div>
+                    <div class="col-6 col-md-3"><div class="churn-metric-card">
+                        <span class="churn-metric-label">Costo recordatorio c₁</span>
+                        <span class="churn-metric-value" th:text="'$' + ${#numbers.formatDecimal(c.actionCosts[0], 1, 'POINT', 0, 'COMMA')}"></span>
+                    </div></div>
+                    <div class="col-6 col-md-3"><div class="churn-metric-card">
+                        <span class="churn-metric-label">Costo promoción c₂</span>
+                        <span class="churn-metric-value"
+                              th:text="'$' + ${#numbers.formatDecimal(c.actionCosts[1], 1, 'POINT', 0, 'COMMA')}
+                                           + ' (' + ${#numbers.formatDecimal(p.discountRate * 100, 1, 0)} + '%)'"></span>
+                    </div></div>
+                    <div class="col-6 col-md-3"><div class="churn-metric-card">
+                        <span class="churn-metric-label">Costo cupo de clase c₃</span>
+                        <span class="churn-metric-value" th:text="'$' + ${#numbers.formatDecimal(c.actionCosts[2], 1, 'POINT', 0, 'COMMA')}"></span>
+                    </div></div>
+                    <div class="col-6 col-md-3"><div class="churn-metric-card">
+                        <span class="churn-metric-label">Estado del solver</span>
+                        <span class="churn-metric-value" th:text="${c.solverStatus == 'Optimal'} ? 'Óptimo' : ${c.solverStatus}"></span>
+                    </div></div>
+                </div>
+
+                <p class="churn-section-title">Segmentos y efectividad supuesta (p<sub>ij</sub>)</p>
+                <div class="table-responsive mb-4">
+                    <table class="table table-users retention-table align-middle">
+                        <thead>
+                        <tr>
+                            <th>Segmento</th>
+                            <th class="text-end">Candidatos N<sub>i</sub></th>
+                            <th class="text-end">Meses esperados</th>
+                            <th class="text-end">Valor v<sub>i</sub></th>
+                            <th class="text-end">p recordatorio</th>
+                            <th class="text-end">p promoción</th>
+                            <th class="text-end">p clase</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="i : ${#numbers.sequence(2, 0, -1)}">
+                            <td class="fw-bold" th:text="${c.segments[i].label}"></td>
+                            <td class="text-end" th:text="${c.segments[i].candidates}"></td>
+                            <td class="text-end" th:text="${p.expectedMonths[i]}"></td>
+                            <td class="text-end" th:text="'$' + ${#numbers.formatDecimal(c.segments[i].expectedValue, 1, 'POINT', 0, 'COMMA')}"></td>
+                            <td class="text-end" th:text="${#numbers.formatDecimal(p.retentionLift[i][0] * 100, 1, 1)} + '%'"></td>
+                            <td class="text-end" th:text="${#numbers.formatDecimal(p.retentionLift[i][1] * 100, 1, 1)} + '%'"></td>
+                            <td class="text-end" th:text="${#numbers.formatDecimal(p.retentionLift[i][2] * 100, 1, 1)} + '%'"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p class="churn-section-title">Asignación x<sub>ij</sub> del modelo</p>
+                <div class="table-responsive mb-4">
+                    <table class="table table-users retention-table align-middle">
+                        <thead>
+                        <tr>
+                            <th>Segmento</th>
+                            <th class="text-end" th:text="${c.actionLabels[0]}"></th>
+                            <th class="text-end" th:text="${c.actionLabels[1]}"></th>
+                            <th class="text-end" th:text="${c.actionLabels[2]}"></th>
+                            <th class="text-end">Total</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="i : ${#numbers.sequence(2, 0, -1)}">
+                            <td class="fw-bold" th:text="${c.segments[i].label}"></td>
+                            <td class="text-end" th:text="${#numbers.formatDecimal(c.allocation[i][0], 1, 0)}"></td>
+                            <td class="text-end" th:text="${#numbers.formatDecimal(c.allocation[i][1], 1, 0)}"></td>
+                            <td class="text-end" th:text="${#numbers.formatDecimal(c.allocation[i][2], 1, 0)}"></td>
+                            <td class="text-end"
+                                th:text="${#numbers.formatDecimal(c.allocation[i][0] + c.allocation[i][1] + c.allocation[i][2], 1, 0)}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p class="churn-section-title">Restricciones y precios sombra</p>
+                <div class="table-responsive mb-3">
+                    <table class="table table-users retention-table align-middle">
+                        <thead>
+                        <tr>
+                            <th>Restricción</th>
+                            <th class="text-end">Uso</th>
+                            <th class="text-end">Límite</th>
+                            <th>Estado</th>
+                            <th class="text-end">Precio sombra</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="k : ${c.constraints}">
+                            <td th:text="${k.code} + ' · ' + ${k.name}"></td>
+                            <td class="text-end" th:text="${#numbers.formatDecimal(k.used, 1, 'POINT', 0, 'COMMA')}"></td>
+                            <td class="text-end"
+                                th:text="${k.sense} + ' ' + ${#numbers.formatDecimal(k.limit, 1, 'POINT', 0, 'COMMA')}"></td>
+                            <td>
+                                <span th:if="${k.binding}" class="retention-binding">Activa</span>
+                                <span th:unless="${k.binding}" class="retention-slack"
+                                      th:text="'Holgura ' + ${#numbers.formatDecimal(k.slack, 1, 'POINT', 0, 'COMMA')}"></span>
+                            </td>
+                            <td class="text-end">
+                                        <span th:if="${k.shadowPrice != 0}" class="retention-positive"
+                                              th:text="'$' + ${#numbers.formatDecimal(k.shadowPrice, 1, 'POINT', 0, 'COMMA')}"></span>
+                                <span th:unless="${k.shadowPrice != 0}" class="retention-zero">—</span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div th:if="${c.messages != null and !#lists.isEmpty(c.messages)}" class="retention-alert retention-alert--info">
+                    <div th:each="m : ${c.messages}" th:text="${m}"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary-modal" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:if="${selectedCampaign != null}" class="modal fade" id="launchModal" tabindex="-1"
+     data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-bodytec">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar lanzamiento de campaña de retención</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+
+                <div id="launchLoading" class="text-center py-4" style="color: var(--text-gray);">
+                    <div class="spinner-border spinner-border-sm me-2" role="status"></div>Calculando resumen...
+                </div>
+
+                <div id="launchError" class="retention-alert retention-alert--error" hidden></div>
+
+                <div id="launchContent" hidden>
+                    <div id="lmDryRun" class="retention-alert retention-alert--warn" hidden>
+                        <strong>Modo de prueba:</strong> no se enviará ningún correo real; solo se simula el proceso y se registra en el log.
+                    </div>
+
+                    <p class="mb-3" style="color: var(--text-white);">
+                        El modelo de optimización seleccionó
+                        <strong id="lmTotal" style="color: var(--primary-color);">0</strong>
+                        usuarios en riesgo para esta campaña. Al confirmar, se enviarán los siguientes correos:
+                    </p>
+
+                    <ul class="retention-launch-list">
+                        <li><strong id="lmPromotions">0</strong> Descuentos (<span id="lmDiscount">15</span>%):
+                            impacto estimado de <strong id="lmImpact">$0</strong> COP.</li>
+                        <li><strong id="lmClassInvites">0</strong> Invitaciones a clase:
+                            sujetas a disponibilidad en sala.</li>
+                        <li><strong id="lmReminders">0</strong> Recordatorios: sin costo financiero relevante.</li>
+                    </ul>
+
+                    <p class="retention-help mb-3" id="lmSkipped" hidden></p>
+
+                    <div class="retention-alert retention-alert--warn">
+                        <strong>Nota:</strong> esta acción no se puede deshacer una vez iniciada la cola de envío.
+                        Podrás detener los correos que aún no hayan salido, pero no recuperar los ya enviados.
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="lmAck">
+                        <label class="form-check-label retention-check-label" for="lmAck">
+                            Entiendo que se enviarán estos correos a usuarios reales y que no se puede deshacer.
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary-modal" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-action px-4" id="lmConfirmBtn" disabled>
+                    <i class="bi bi-send me-2"></i><span id="lmConfirmLabel">Sí, enviar correos</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999;">
+    <div id="retToast" class="toast align-items-center text-white border-0"
+         style="background: var(--primary-color);" role="alert">
+        <div class="d-flex">
+            <div class="toast-body" id="retToastMsg">Estado actualizado.</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/chat-widget :: chat-widget}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/retention-history.js}"></script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+:root {
+    --bi-bg: #2b2928;
+    --bi-primary: #eb6608;
+    --bi-text: #ffffff;
+    --bi-hover: #c75006;
+    --bi-crop: 48px;
+    --bi-offset-top: 0px;
+}
+
+.bi-page .main-content {
+    padding: 0;
+    overflow: hidden;
+    background: var(--bi-bg);
+}
+
+.bi-report {
+    position: relative;
+    width: 100%;
+    height: calc(100vh - var(--bi-offset-top));
+    height: calc(100dvh - var(--bi-offset-top));
+    overflow: hidden;
+    background: var(--bi-bg);
+}
+
+.bi-report iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: calc(100% + var(--bi-crop));
+    border: 0;
+    display: block;
+}
+
+.bi-loader {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.85rem;
+    background: var(--bi-bg);
+    color: var(--bi-text);
+    font-family: 'Work Sans', sans-serif;
+    font-size: 0.9rem;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+.bi-loader .spinner-border {
+    color: var(--bi-primary);
+}
+
+.bi-loader.is-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.bi-tools {
+    position: absolute;
+    left: 0.75rem;
+    bottom: 0.75rem;
+    z-index: 3;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.bi-tool {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(29, 27, 26, 0.85);
+    color: var(--bi-text);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    font-size: 0.95rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.3s ease, opacity 0.3s ease;
+}
+
+.bi-tool:hover {
+    background: var(--bi-primary);
+    color: var(--bi-text);
+}
+
+@media (hover: hover) {
+    .bi-tools {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .bi-report:hover .bi-tools,
+    .bi-tools:focus-within {
+        opacity: 1;
+    }
+}
+
+.bi-report:fullscreen {
+    background: var(--bi-bg);
+}
+
+@media (max-width: 768px) {
+
+    .bi-page .main-content {
+        height: auto;
+        min-height: calc(100dvh - var(--bi-offset-top));
+        overflow: visible;
+    }
+
+    .bi-report {
+        height: auto;
+        aspect-ratio: 16 / 9;
+    }
+}

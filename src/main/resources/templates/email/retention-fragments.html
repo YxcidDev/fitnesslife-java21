@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="header(gymName)" style="background:#eb6608;padding:22px 28px;border-radius:8px 8px 0 0;">
+    <span style="font-family:Arial,Helvetica,sans-serif;font-size:22px;font-weight:700;color:#ffffff;letter-spacing:0.5px;"
+          th:text="${gymName}">Fitness Life</span>
+</div>
+
+<p th:fragment="button(url, label)" style="margin:28px 0 8px 0;">
+    <a th:href="${url}" th:text="${label}"
+       style="display:inline-block;background:#eb6608;color:#ffffff;text-decoration:none;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:700;padding:12px 26px;border-radius:6px;">Ir al sitio</a>
+</p>
+
+<div th:fragment="footer(gymName)" style="padding:18px 28px;border-top:1px solid #e5e5e5;">
+    <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.5;color:#888888;">
+        Recibes este mensaje porque eres miembro de <span th:text="${gymName}">Fitness Life</span>.
+        Si no deseas recibir más comunicaciones, responde a este correo indicándolo.
+    </p>
+</div>
+
+</body>
+</html>

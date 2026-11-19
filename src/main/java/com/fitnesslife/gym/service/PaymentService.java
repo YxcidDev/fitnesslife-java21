@@ -53,6 +53,7 @@ public class PaymentService {
 
         Payment payment = Payment.builder()
                 .user(user)
+                .userId(user.getId())
                 .plan(plan)
                 .externalInvoice(externalInvoice)
                 .amount(plan.getPrice())

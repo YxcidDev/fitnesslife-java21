@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${gymName}">Fitness Life</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f4f4;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f4f4;padding:24px 0;">
+    <tr>
+        <td align="center">
+            <table role="presentation" width="600" cellspacing="0" cellpadding="0"
+                   style="max-width:600px;width:100%;background:#ffffff;border-radius:8px;">
+                <tr><td th:insert="~{email/retention-fragments :: header(${gymName})}"></td></tr>
+                <tr>
+                    <td style="padding:28px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#333333;">
+                        <p style="margin:0 0 14px 0;">Hola<span th:if="${firstName != ''}" th:text="${', ' + firstName}">, Carlos</span>:</p>
+                        <p style="margin:0 0 14px 0;">Queremos que sigas entrenando con nosotros, por eso preparamos una promoción para ti:</p>
+                        <p style="margin:0 0 14px 0;padding:16px;background:#fff4ec;border-left:4px solid #eb6608;font-size:18px;font-weight:700;color:#eb6608;">
+                            <span th:text="${discountPercent}">15</span>% de descuento en tu membresía
+                        </p>
+                        <p style="margin:0;">Válida hasta el <strong th:text="${validUntil}">30 de noviembre de 2026</strong>. Para aplicarla, comunícate con la recepción del gimnasio.</p>
+                        <div th:replace="~{email/retention-fragments :: button(${ctaUrl}, 'Ver mi membresía')}"></div>
+                    </td>
+                </tr>
+                <tr><td th:insert="~{email/retention-fragments :: footer(${gymName})}"></td></tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

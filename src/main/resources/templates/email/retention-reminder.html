@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${gymName}">Fitness Life</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f4f4;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f4f4;padding:24px 0;">
+    <tr>
+        <td align="center">
+            <table role="presentation" width="600" cellspacing="0" cellpadding="0"
+                   style="max-width:600px;width:100%;background:#ffffff;border-radius:8px;">
+                <tr><td th:insert="~{email/retention-fragments :: header(${gymName})}"></td></tr>
+                <tr>
+                    <td style="padding:28px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#333333;">
+                        <p style="margin:0 0 14px 0;">Hola<span th:if="${firstName != ''}" th:text="${', ' + firstName}">, Carlos</span>:</p>
+                        <p style="margin:0 0 14px 0;">Notamos que hace un tiempo no te vemos por <strong th:text="${gymName}">Fitness Life</strong>. Tu progreso importa y tu espacio de entrenamiento te está esperando.</p>
+                        <p style="margin:0;">Volver es más fácil de lo que parece: una sesión corta hoy ayuda a retomar el hábito.</p>
+                        <div th:replace="~{email/retention-fragments :: button(${ctaUrl}, 'Retomar mi entrenamiento')}"></div>
+                    </td>
+                </tr>
+                <tr><td th:insert="~{email/retention-fragments :: footer(${gymName})}"></td></tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

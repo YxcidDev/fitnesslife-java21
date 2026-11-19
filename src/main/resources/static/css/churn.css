@@ -9,35 +9,9 @@
   transition: transform 0.2s;
 }
 
-.churn-stat-card--high {
-  border-left-color: #e74c3c;
-}
-.churn-stat-card--medium {
-  border-left-color: #f39c12;
-}
-.churn-stat-card--low {
-  border-left-color: #2ecc71;
-}
-.churn-stat-card--pct {
-  border-left-color: var(--primary-color);
-}
-
 .churn-stat-icon {
   font-size: 2rem;
   flex-shrink: 0;
-}
-
-.churn-stat-card--high .churn-stat-icon {
-  color: #e74c3c;
-}
-.churn-stat-card--medium .churn-stat-icon {
-  color: #f39c12;
-}
-.churn-stat-card--low .churn-stat-icon {
-  color: #2ecc71;
-}
-.churn-stat-card--pct .churn-stat-icon {
-  color: var(--primary-color);
 }
 
 .churn-stat-body {
@@ -57,49 +31,7 @@
   font-size: 0.8rem;
   color: var(--text-gray);
   margin-top: 0.25rem;
-  text-transform: uppercase;
   letter-spacing: 0.5px;
-}
-
-.churn-risk-high {
-  color: #e74c3c;
-}
-.churn-risk-medium {
-  color: #f39c12;
-}
-.churn-risk-low {
-  color: #2ecc71;
-}
-
-.churn-profile-committed {
-  color: #1abc9c;
-}
-.churn-profile-irregular {
-  color: #f39c12;
-}
-.churn-profile-unmotivated {
-  color: #e74c3c;
-}
-
-.churn-plan-basic {
-  color: var(--text-gray);
-}
-.churn-plan-premium {
-  color: var(--primary-color);
-}
-.churn-plan-elite {
-  color: #f1c40f;
-}
-
-.churn-prediction-yes {
-  color: #e74c3c;
-  font-weight: 600;
-  font-size: 0.85rem;
-}
-.churn-prediction-no {
-  color: #2ecc71;
-  font-weight: 600;
-  font-size: 0.85rem;
 }
 
 .btn-churn-detail {
@@ -129,7 +61,6 @@
 
 .churn-metric-label {
   font-size: 0.72rem;
-  text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--text-gray);
 }
@@ -145,7 +76,6 @@
   font-family: "Montserrat", sans-serif;
   font-weight: 700;
   font-size: 0.85rem;
-  text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--primary-color);
   margin-bottom: 0.5rem;
@@ -222,7 +152,6 @@
 
 .churn-confidence-label {
   font-size: 0.72rem;
-  text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--text-gray);
 }

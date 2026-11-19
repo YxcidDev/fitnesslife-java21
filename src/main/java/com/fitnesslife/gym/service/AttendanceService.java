@@ -159,6 +159,7 @@ public class AttendanceService {
             LocalDateTime checkIn, LocalDateTime checkOut, AccessResult result) {
         attendanceRepository.save(Attendance.builder()
                 .user(user)
+                .userId(user.getId())
                 .qrCode(qrCode)
                 .checkIn(checkIn)
                 .checkOut(checkOut)

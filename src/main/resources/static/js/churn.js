@@ -35,13 +35,10 @@ document.addEventListener('DOMContentLoaded', function () {
             const riskBadge = document.getElementById('modalRiskBadge');
             riskBadge.className = 'churn-risk-badge fs-6';
             if (risk === 'HIGH') {
-                riskBadge.classList.add('churn-risk-high');
                 riskBadge.textContent = 'Riesgo alto';
             } else if (risk === 'MEDIUM') {
-                riskBadge.classList.add('churn-risk-medium');
                 riskBadge.textContent = 'Riesgo medio';
             } else {
-                riskBadge.classList.add('churn-risk-low');
                 riskBadge.textContent = 'Riesgo bajo';
             }
 
@@ -67,7 +64,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const predEl = document.getElementById('modalPrediction');
             predEl.textContent = prediction === 'Yes' ? 'Probable deserción' : 'Continuará activo';
-            predEl.style.color = prediction === 'Yes' ? '#e74c3c' : '#2ecc71';
 
             const confEl  = document.getElementById('modalConfidence');
             const confBar = document.getElementById('modalConfidenceBar');
@@ -176,11 +172,41 @@ function sendPromotion() {
     showToast('Promoción enviada a ' + user.name);
 }
 
-function registerFollowUp() {
+function inviteToClass() {
     const user = window._activeChurnUser;
     if (!user) return;
-    showToast('Seguimiento registrado para ' + user.name
-        + '. Recuerda hacer contacto en los próximos 3 días.');
+
+    const email = (user.email || '').trim();
+
+    if (!email) {
+        showToast('El usuario no tiene un correo registrado.');
+        return;
+    }
+
+    const firstName = user.name.split(' ')[0];
+
+    const subject = encodeURIComponent(
+        'Fitness Life — ¡Te invitamos a una clase!'
+    );
+
+    const body = encodeURIComponent(
+        'Hola ' + firstName + ',\n\n' +
+        'En Fitness Life queremos invitarte a participar en una de nuestras clases grupales.\n\n' +
+        'Es una excelente oportunidad para retomar tus entrenamientos, ' +
+        'mantenerte activo y compartir con otros miembros de nuestro gimnasio.\n\n' +
+        'Anímate a participar. Puedes comunicarte con nuestro equipo ' +
+        'para conocer los horarios disponibles.\n\n' +
+        '¡Te esperamos!\n\n' +
+        'El equipo de Fitness Life'
+    );
+
+    window.location.href =
+        'mailto:' + encodeURIComponent(email) +
+        '?subject=' + subject +
+        '&body=' + body;
+
+    showToast('Invitación preparada para ' + user.name +
+        '. Revisa tu correo para enviarla.');
 }
 
 function showToast(message) {

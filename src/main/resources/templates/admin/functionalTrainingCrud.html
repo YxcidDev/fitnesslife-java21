@@ -131,18 +131,23 @@
                       th:text="${training.instructor}"
                     ></p>
                     <select
-                      name="instructor"
-                      class="form-select edit-mode"
-                      style="display: none"
+                            name="instructorId"
+                            class="form-select edit-mode"
+                            style="display: none"
+                            required
                     >
-                      <option value="" disabled>
+                      <option
+                              value=""
+                              th:selected="${training.instructorId == null}"
+                      >
                         Seleccione un instructor
                       </option>
+
                       <option
-                        th:each="trainer : ${trainers}"
-                        th:value="${trainer.name + ' ' + trainer.lastname}"
-                        th:text="${trainer.name + ' ' + trainer.lastname}"
-                        th:selected="${training.instructor != null and training.instructor == trainer.name + ' ' + trainer.lastname}"
+                              th:each="trainer : ${trainers}"
+                              th:value="${trainer.id}"
+                              th:text="${trainer.name + ' ' + trainer.lastname}"
+                              th:selected="${training.instructorId != null and training.instructorId == trainer.id}"
                       ></option>
                     </select>
                   </div>
@@ -244,14 +249,6 @@
                       style="display: none"
                     >
                       Cancelar
-                    </button>
-                    <button
-                      type="submit"
-                      class="btn btn-action-delete"
-                      th:formaction="@{/trainings/delete/{id}(id=${training.id})}"
-                      onclick="return confirm('¿Eliminar esta clase?');"
-                    >
-                      Eliminar
                     </button>
                   </div>
                 </div>
@@ -362,18 +359,23 @@
                       th:text="${training.instructor}"
                     ></p>
                     <select
-                      name="instructor"
-                      class="form-select edit-mode"
-                      style="display: none"
+                            name="instructorId"
+                            class="form-select edit-mode"
+                            style="display: none"
+                            required
                     >
-                      <option value="" disabled>
+                      <option
+                              value=""
+                              th:selected="${training.instructorId == null}"
+                      >
                         Seleccione un instructor
                       </option>
+
                       <option
-                        th:each="trainer : ${trainers}"
-                        th:value="${trainer.name + ' ' + trainer.lastname}"
-                        th:text="${trainer.name + ' ' + trainer.lastname}"
-                        th:selected="${training.instructor != null and training.instructor == trainer.name + ' ' + trainer.lastname}"
+                              th:each="trainer : ${trainers}"
+                              th:value="${trainer.id}"
+                              th:text="${trainer.name + ' ' + trainer.lastname}"
+                              th:selected="${training.instructorId != null and training.instructorId == trainer.id}"
                       ></option>
                     </select>
                   </div>
@@ -475,14 +477,6 @@
                       style="display: none"
                     >
                       Cancelar
-                    </button>
-                    <button
-                      type="submit"
-                      class="btn btn-action-delete"
-                      th:formaction="@{/trainings/delete/{id}(id=${training.id})}"
-                      onclick="return confirm('¿Eliminar esta clase?');"
-                    >
-                      Eliminar
                     </button>
                   </div>
                 </div>
