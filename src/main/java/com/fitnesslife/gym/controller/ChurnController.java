@@ -58,6 +58,7 @@ public class ChurnController {
         model.addAttribute("profileFilter", profile != null ? profile : "");
         model.addAttribute("searchTerm", search != null ? search : "");
         model.addAttribute("currentPageNav", "churn");
+        model.addAttribute("activePage", "churn");
 
         return "admin/churn-management";
     }

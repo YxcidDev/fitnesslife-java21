@@ -39,7 +39,7 @@ public class FunctionalTrainingService {
 
     private final FunctionalTrainingRepository repository;
     private final UserService userService;
-    private final PaymentService paymentService;
+    private final ClassEnrollmentService enrollmentService;
 
     public record FilteredTrainingsResult(
             List<FunctionalTraining> todayTrainings,
@@ -112,45 +112,14 @@ public class FunctionalTrainingService {
         log.info("Clase eliminada exitosamente");
     }
 
-    @Transactional
     public void inscribirUsuario(int idFunctionalTraining, String email) {
         log.info("Inscribiendo al usuario {} en la clase {}", email, idFunctionalTraining);
-
-        User user = userService.getUserOrThrow(email);
-
-        boolean hasActivePlan = paymentService.getActivePayment(user.getId()).isPresent();
-        if (!hasActivePlan) {
-            throw new NoActivePlanException("El usuario no tiene un plan activo");
-        }
-
-        FunctionalTraining training = repository.findByIdFunctionalTraining(idFunctionalTraining)
-                .orElseThrow(() -> new FunctionalTrainingNotFoundException(
-                        "Clase no encontrada: " + idFunctionalTraining));
-
-        if (training.getUserIds().contains(user.getIdentification())) {
-            throw new AlreadyEnrolledException("El usuario ya está inscrito en esta clase");
-        }
-
-        training.getUserIds().add(user.getIdentification());
-        repository.save(training);
-        log.info("Inscripción realizada exitosamente");
+        enrollmentService.enroll(userService.getUserOrThrow(email), idFunctionalTraining);
     }
 
-    @Transactional
     public void cancelarInscripcion(int idFunctionalTraining, String emailUsuario) {
         log.info("Cancelando inscripción del usuario {} en clase {}", emailUsuario, idFunctionalTraining);
-
-        User user = userService.getUserOrThrow(emailUsuario);
-
-        FunctionalTraining training = repository.findByIdFunctionalTraining(idFunctionalTraining)
-                .orElseThrow(() -> new FunctionalTrainingNotFoundException(
-                        "Clase no encontrada: " + idFunctionalTraining));
-
-        if (training.getUserIds() != null && training.getUserIds().contains(user.getIdentification())) {
-            training.getUserIds().remove(user.getIdentification());
-            repository.save(training);
-            log.info("Inscripción cancelada exitosamente");
-        }
+        enrollmentService.cancel(userService.getUserOrThrow(emailUsuario), idFunctionalTraining);
     }
 
     public FunctionalTraining findByIdFunctional(int idFunctional) {
@@ -236,11 +205,6 @@ public class FunctionalTrainingService {
         });
     }
 
-    /**
-     * One-time migration helper: links classes that only have the trainer's name to the trainer's
-     * user id. A class is linked only when exactly one TRAINER user has that full name.
-     * Idempotent: classes that already have an instructorId are never touched.
-     */
     @Transactional
     public InstructorBackfillResult backfillInstructorIds() {
         List<FunctionalTraining> pending = repository.findByInstructorIdIsNull();
@@ -269,10 +233,6 @@ public class FunctionalTrainingService {
         return new InstructorBackfillResult(linked, unresolved);
     }
 
-    /**
-     * Resolves the trainer from the submitted instructorId and writes the display name.
-     * The server is the only source of the name: whatever the client sends in "instructor" is ignored.
-     */
     private void assignInstructor(FunctionalTraining training) {
         String instructorId = training.getInstructorId();
         if (instructorId == null || instructorId.isBlank()) {
@@ -289,10 +249,6 @@ public class FunctionalTrainingService {
         training.setInstructor(trainer.getName() + " " + trainer.getLastname());
     }
 
-    /**
-     * Rejects the candidate when its trainer already has another class overlapping
-     * [start, end). Back-to-back classes (one ends exactly when the next starts) are allowed.
-     */
     private void assertTrainerAvailable(FunctionalTraining candidate, String ignoredTrainingId) {
         LocalDateTime start = candidate.startsAt();
         if (start == null) {
@@ -300,7 +256,6 @@ public class FunctionalTrainingService {
         }
         LocalDateTime end = candidate.endsAt();
 
-        // Any class overlapping [start, end) started after (start - 1 day): input durations are capped at 999 minutes.
         List<FunctionalTraining> nearbyClasses = repository.findByInstructorIdAndDatetimeBetween(
                 candidate.getInstructorId(), start.minusDays(1), end);
 

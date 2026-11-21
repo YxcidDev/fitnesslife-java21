@@ -9,5 +9,6 @@ public record ChatMessageResponse(
         ChatRole role,
         String content,
         Instant createdAt,
-        List<ChatSourceResponse> sources) {
+        List<ChatSourceResponse> sources,
+        boolean realtime) {
 }

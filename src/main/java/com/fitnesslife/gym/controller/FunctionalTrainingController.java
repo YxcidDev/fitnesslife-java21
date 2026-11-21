@@ -1,11 +1,7 @@
 package com.fitnesslife.gym.controller;
 
 import com.fitnesslife.gym.dto.FunctionalTrainingResponseDTO;
-import com.fitnesslife.gym.exception.AlreadyEnrolledException;
-import com.fitnesslife.gym.exception.DomainException;
-import com.fitnesslife.gym.exception.FunctionalTrainingNotFoundException;
-import com.fitnesslife.gym.exception.InvalidRequestException;
-import com.fitnesslife.gym.exception.NoActivePlanException;
+import com.fitnesslife.gym.exception.*;
 import com.fitnesslife.gym.mapper.FunctionalTrainingMapper;
 import com.fitnesslife.gym.model.FunctionalTraining;
 import com.fitnesslife.gym.service.FunctionalTrainingService;
@@ -116,21 +112,42 @@ public class FunctionalTrainingController {
     }
 
     @PostMapping("/inscribirme/{idFunctionalTraining}")
-    public String inscribirme(@PathVariable int idFunctionalTraining, Principal principal) {
+    public String inscribirme(@PathVariable int idFunctionalTraining, Principal principal,
+                              RedirectAttributes redirectAttributes) {
         try {
             service.inscribirUsuario(idFunctionalTraining, principal.getName());
-            return "redirect:/home?success=inscrito";
-        } catch (NoActivePlanException e) {
-            return "redirect:/home?error=sin-plan";
-        } catch (AlreadyEnrolledException e) {
-            return "redirect:/home?error=ya-inscrito";
+            redirectAttributes.addFlashAttribute("enrollmentSuccess",
+                    "Quedaste inscrito en " + classLabel(idFunctionalTraining) + ".");
+        } catch (DomainException e) {
+            log.warn("Inscripción rechazada: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute("enrollmentError", userMessage(e));
         }
+        return "redirect:/home";
     }
 
     @PostMapping("/cancelarInscripcion/{id}")
-    public String cancelarInscripcion(@PathVariable int id, Principal principal) {
-        service.cancelarInscripcion(id, principal.getName());
-        return "redirect:/home?success=Cancelada";
+    public String cancelarInscripcion(@PathVariable int id, Principal principal,
+                                      RedirectAttributes redirectAttributes) {
+        try {
+            service.cancelarInscripcion(id, principal.getName());
+            redirectAttributes.addFlashAttribute("enrollmentSuccess",
+                    "Cancelaste tu inscripción en " + classLabel(id) + ". No hay ninguna sanción para tu plan.");
+        } catch (DomainException e) {
+            log.warn("Cancelación rechazada: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute("enrollmentError", userMessage(e));
+        }
+        return "redirect:/home";
+    }
+
+    private String classLabel(int idFunctionalTraining) {
+        FunctionalTraining training = service.findByIdFunctional(idFunctionalTraining);
+        return training == null ? "la clase" : "«" + training.getNameTraining() + "»";
+    }
+
+    private String userMessage(DomainException e) {
+        boolean safe = e instanceof NoActivePlanException || e instanceof AlreadyEnrolledException
+                || e instanceof EnrollmentException || e instanceof FunctionalTrainingNotFoundException;
+        return safe ? e.getMessage() : "No se pudo completar la operación. Inténtalo de nuevo.";
     }
 
     private String summarizeErrors(BindingResult bindingResult) {

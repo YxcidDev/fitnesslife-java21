@@ -37,6 +37,7 @@ public class AdminFunctionalTrainingController {
                 .toList();
 
         model.addAttribute("currentPage", "clases");
+        model.addAttribute("activePage", "clases");
         model.addAttribute("clases", result.todayTrainings());
         model.addAttribute("trainings", pagedTrainings.getContent());
         model.addAttribute("training", new FunctionalTraining());

@@ -18,4 +18,5 @@ public class ChatMessage {
     private String content;
     private Instant createdAt;
     private List<ChatSource> sources;
+    private boolean realtime;
 }

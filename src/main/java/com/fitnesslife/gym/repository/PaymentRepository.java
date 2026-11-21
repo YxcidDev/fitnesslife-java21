@@ -73,4 +73,11 @@ public interface PaymentRepository extends MongoRepository<Payment, String> {
 
         @Query(value = "{ 'userId': { $in: ?0 }, 'status': 'ACCEPTED' }", fields = "{ 'userId': 1, 'validUntil': 1, 'status': 1 }")
         List<Payment> findChurnFieldsByUserIdIn(List<String> userIds);
+
+        @Query("{ 'userId': ?0, 'status': 'ACCEPTED', 'validFrom': { $lte: ?1 }, 'validUntil': { $gte: ?1 } }")
+        List<Payment> findActiveByUserId(String userId, LocalDateTime now);
+
+        Optional<Payment> findFirstByUserIdOrderByCreatedAtDesc(String userId);
+
+        long countByUserIdAndStatusAndCreatedAtAfter(String userId, PaymentStatus status, LocalDateTime after);
 }

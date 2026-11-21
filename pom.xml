@@ -101,34 +101,28 @@
 			<artifactId>mapstruct</artifactId>
 			<version>${mapstruct.version}</version>
 		</dependency>
-		<!-- CAMBIO 3: Spring AI para modelos de chat compatibles
-             con la API de OpenAI, como la integración con Groq -->
+
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-starter-model-openai</artifactId>
         </dependency>
 
-        <!-- CAMBIO 4: Spring AI con MongoDB Atlas Vector Search -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-starter-vector-store-mongodb-atlas</artifactId>
         </dependency>
 
-        <!-- CAMBIO 5: lector de documentos PDF de Spring AI.
-             No se declara PDFBox directamente. -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-pdf-document-reader</artifactId>
         </dependency>
 
-        <!-- Se conserva jsoup como dependencia explícita -->
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
             <version>1.21.1</version>
         </dependency>
 
-        <!-- Dependencias de pruebas existentes -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>

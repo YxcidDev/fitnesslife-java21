@@ -51,7 +51,7 @@ public class SecurityConfig {
                                 "/ws/**", "/api/password/**", "/legal/**")
                         .permitAll()
 
-                        .requestMatchers("/dashboard/**", "/api/dashboard/**", "/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/update-role").hasRole("ADMIN")
 
                         .requestMatchers("/trainings/inscribirme/**", "/trainings/cancelarInscripcion/**")
@@ -80,7 +80,7 @@ public class SecurityConfig {
                             var authorities = authentication.getAuthorities();
 
                             if (authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
-                                response.sendRedirect(request.getContextPath() + "/dashboard");
+                                response.sendRedirect(request.getContextPath() + "/admin/bi");
                                 return;
                             }
 

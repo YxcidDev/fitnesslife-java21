@@ -2,22 +2,22 @@
   <div class="sidebar-header">
     <div class="admin-profile">
       <img
-        th:if="${currentUser != null and currentUser.photoProfile != null and !currentUser.photoProfile.isEmpty()}"
-        th:src="${currentUser.photoProfile}"
-        alt="Admin Avatar"
-        class="admin-avatar"
+              th:if="${currentUser != null and currentUser.photoProfile != null and !currentUser.photoProfile.isEmpty()}"
+              th:src="${currentUser.photoProfile}"
+              alt="Admin Avatar"
+              class="admin-avatar"
       />
       <img
-        th:unless="${currentUser != null and currentUser.photoProfile != null and !currentUser.photoProfile.isEmpty()}"
-        th:src="'https://ui-avatars.com/api/?name=' + ${currentUser.name} + '+' + ${currentUser.lastname} + '&background=eb6608&color=fff&size=128'"
-        alt="Admin Avatar"
-        class="admin-avatar"
+              th:unless="${currentUser != null and currentUser.photoProfile != null and !currentUser.photoProfile.isEmpty()}"
+              th:src="'https://ui-avatars.com/api/?name=' + ${currentUser.name} + '+' + ${currentUser.lastname} + '&background=eb6608&color=fff&size=128'"
+              alt="Admin Avatar"
+              class="admin-avatar"
       />
       <div class="admin-info">
         <h5 class="admin-name">
-          <span th:text="${currentUser.name} + ' ' + ${currentUser.lastname}"
-            >Admin User</span
-          >
+                    <span th:text="${currentUser.name} + ' ' + ${currentUser.lastname}">
+                        Admin User
+                    </span>
         </h5>
         <p class="admin-role">Administrador</p>
       </div>
@@ -25,98 +25,105 @@
   </div>
 
   <ul class="sidebar-menu">
-    <!--<li class="menu-item">
-      <a
-        href="/dashboard"
-        class="menu-link"
-        th:classappend="${currentPage == 'dashboard'} ? 'active'"
-      >
-        <i class="bi bi-house-door-fill"></i>
-        <span>Panel</span>
-      </a>
-    </li>-->
+
     <li class="menu-item">
       <a
-              href="/admin/bi"
+              th:href="@{/admin/bi}"
               class="menu-link"
-              th:classappend="${currentPage == 'bi'} ? 'active'">
+              th:classappend="${activePage == 'bi'} ? 'active'">
         <i class="bi bi-bar-chart-line-fill"></i>
-        <span>BI</span>
+        <span>Business Intelligence</span>
       </a>
     </li>
+
     <li class="menu-item">
       <a
-        href="/admin/churn"
-        class="menu-link"
-        th:classappend="${currentPage == 'churn'} ? 'active'"
-      >
+              th:href="@{/admin/churn}"
+              class="menu-link"
+              th:classappend="${activePage == 'churn'} ? 'active'">
         <i class="bi bi-exclamation-triangle-fill"></i>
         <span>Usuarios en riesgo</span>
       </a>
     </li>
+
     <li class="menu-item">
       <a
-        href="/admin/userTable"
-        class="menu-link"
-        th:classappend="${currentPage == 'usuarios'} ? 'active'"
-      >
+              th:href="@{/admin/userTable}"
+              class="menu-link"
+              th:classappend="${activePage == 'usuarios'} ? 'active'">
         <i class="bi bi-people-fill"></i>
         <span>Usuarios</span>
       </a>
     </li>
+
     <li class="menu-item">
       <a
-        href="/admin/functionalTraining"
-        class="menu-link"
-        th:classappend="${currentPage == 'clases'} ? 'active'"
-      >
+              th:href="@{/admin/functionalTraining}"
+              class="menu-link"
+              th:classappend="${activePage == 'clases'} ? 'active'">
         <i class="bi bi-calendar-event-fill"></i>
         <span>Clases</span>
       </a>
     </li>
+
     <li class="menu-item">
-      <a href="/admin/plans" class="menu-link">
+      <a
+              th:href="@{/admin/plans}"
+              class="menu-link"
+              th:classappend="${activePage == 'planes'} ? 'active'">
         <i class="bi bi-credit-card-fill"></i>
         <span>Planes</span>
       </a>
     </li>
+
     <li class="menu-item">
-      <a href="/admin/payments" class="menu-link">
+      <a
+              th:href="@{/admin/payments}"
+              class="menu-link"
+              th:classappend="${activePage == 'pagos'} ? 'active'">
         <i class="bi bi-wallet-fill"></i>
         <span>Pagos</span>
       </a>
     </li>
+
     <li class="menu-item">
-      <a href="/admin/accesses" class="menu-link">
+      <a
+              th:href="@{/admin/accesses}"
+              class="menu-link"
+              th:classappend="${activePage == 'accesos'} ? 'active'">
         <i class="bi bi-door-closed-fill"></i>
         <span>Accesos</span>
       </a>
     </li>
+
     <li class="menu-item">
-      <a href="/admin/retention/history" class="menu-link">
-        <i class="bi-arrow-repeat"></i>
+      <a
+              th:href="@{/admin/retention/history}"
+              class="menu-link"
+              th:classappend="${activePage == 'retention'} ? 'active'">
+        <i class="bi bi-arrow-repeat"></i>
         <span>Campañas de retención</span>
       </a>
     </li>
+
     <li class="menu-item">
       <a
-        href="/attendance/kiosk"
-        class="menu-link menu-link--kiosk"
-        target="_blank"
-        rel="noopener noreferrer"
-        title="Abre la pantalla de control de asistencias en una nueva pestaña"
-      >
+              th:href="@{/attendance/kiosk}"
+              class="menu-link menu-link--kiosk"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Abre la pantalla de control de asistencias en una nueva pestaña">
         <i class="bi bi-person-check-fill"></i>
         <span>Control de asistencias</span>
         <i class="bi bi-arrow-up-right-square-fill kiosk-external-icon"></i>
       </a>
     </li>
+
     <li class="menu-item">
       <a
-        href="/admin/knowledge"
-        class="menu-link"
-        th:classappend="${currentPage == 'knowledge'} ? 'active'"
-      >
+              th:href="@{/admin/knowledge}"
+              class="menu-link"
+              th:classappend="${activePage == 'knowledge'} ? 'active'">
         <i class="bi bi-book-fill"></i>
         <span>Base de conocimiento</span>
       </a>
@@ -124,9 +131,14 @@
   </ul>
 
   <div class="sidebar-footer">
-    <a href="/home" class="footer-btn"> Ir a aplicación </a>
+    <a th:href="@{/home}" class="footer-btn">
+      Ir a aplicación
+    </a>
+
     <form th:action="@{/logout}" method="post">
-      <button type="submit" class="footer-btn logout">Cerrar sesión</button>
+      <button type="submit" class="footer-btn logout">
+        Cerrar sesión
+      </button>
     </form>
   </div>
 </nav>

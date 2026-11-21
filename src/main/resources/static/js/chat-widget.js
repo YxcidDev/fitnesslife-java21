@@ -33,6 +33,8 @@
         followLatest: true
     };
 
+    const pendingCards = new Map();
+
     class ChatError extends Error {
         constructor(message, status) {
             super(message);
@@ -120,7 +122,7 @@
         el.empty.hidden = el.messages.querySelector('.fl-chat__msg') !== null;
     }
 
-    function addMessage(role, content, sources) {
+    function addMessage(role, content, sources, realtime) {
         const isUser = role === 'USER';
         const wrapper = document.createElement('div');
         wrapper.className = 'fl-chat__msg fl-chat__msg--' + (isUser ? 'user' : 'assistant');
@@ -134,6 +136,13 @@
         text.textContent = content;
 
         wrapper.append(author, text);
+
+        if (!isUser && realtime) {
+            const note = document.createElement('div');
+            note.className = 'fl-chat__sources';
+            note.textContent = 'Consultado en tiempo real';
+            wrapper.appendChild(note);
+        }
 
         if (!isUser && Array.isArray(sources) && sources.length > 0) {
             const block = document.createElement('div');
@@ -172,15 +181,82 @@
         el.messages.querySelectorAll('.fl-chat__msg').forEach(function (node) {
             node.remove();
         });
+        el.messages.querySelectorAll('.fl-chat__action').forEach(function (node) { node.remove(); });
+        pendingCards.clear();
         refreshEmpty();
     }
 
     function renderMessages(list) {
         clearMessages();
         list.forEach(function (message) {
-            addMessage(message.role, message.content, message.sources);
+            addMessage(message.role, message.content, message.sources, message.realtime);
         });
         scrollToBottom();
+    }
+
+    function renderPendingActions(actions) {
+        (actions || []).forEach(function (action) {
+            if (pendingCards.has(action.id) || action.conversationId !== state.conversationId) {
+                return;
+            }
+            const card = document.createElement('div');
+            card.className = 'fl-chat__action';
+
+            const text = document.createElement('p');
+            text.className = 'fl-chat__action-text';
+            text.textContent = action.summary;
+
+            const buttons = document.createElement('div');
+            buttons.className = 'fl-chat__action-buttons';
+            const confirmButton = document.createElement('button');
+            confirmButton.type = 'button';
+            confirmButton.className = 'fl-chat__action-btn';
+            confirmButton.textContent = 'Confirmar';
+            const declineButton = document.createElement('button');
+            declineButton.type = 'button';
+            declineButton.className = 'fl-chat__action-btn fl-chat__action-btn--secondary';
+            declineButton.textContent = 'Cancelar';
+
+            confirmButton.addEventListener('click', function () { resolveAction(action.id, 'confirm'); });
+            declineButton.addEventListener('click', function () { resolveAction(action.id, 'cancel'); });
+
+            buttons.append(confirmButton, declineButton);
+            card.append(text, buttons);
+            el.messages.appendChild(card);
+            pendingCards.set(action.id, card);
+        });
+        scrollToBottom();
+    }
+
+    function removeCard(id) {
+        const card = pendingCards.get(id);
+        if (card) {
+            card.remove();
+            pendingCards.delete(id);
+        }
+    }
+
+    async function resolveAction(id, kind) {
+        const card = pendingCards.get(id);
+        if (!card || state.sending) {
+            return;
+        }
+        const buttons = card.querySelectorAll('button');
+        buttons.forEach(function (button) { button.disabled = true; });
+        clearError();
+        try {
+            const result = await request('/actions/' + encodeURIComponent(id) + '/' + kind, { method: 'POST' });
+            removeCard(id);
+            addMessage('ASSISTANT', result.message, [], true);
+            scrollToBottom();
+        } catch (error) {
+            if (error.status === 0) {
+                buttons.forEach(function (button) { button.disabled = false; });
+            } else {
+                removeCard(id);
+            }
+            showError(error.message);
+        }
     }
 
     function showError(message) {
@@ -244,6 +320,10 @@
                     '/conversations/' + encodeURIComponent(latest.id) + '/messages?limit=50');
                 state.conversationId = latest.id;
                 renderMessages(messages);
+                try {
+                    renderPendingActions(await request('/actions/pending'));
+                } catch (ignored) {
+                }
             }
             state.loaded = true;
         } catch (error) {
@@ -325,7 +405,8 @@
             });
             typing.remove();
             state.conversationId = reply.conversationId;
-            const node = addMessage('ASSISTANT', reply.reply.content, reply.reply.sources);
+            const node = addMessage('ASSISTANT', reply.reply.content, reply.reply.sources, reply.reply.realtime);
+            renderPendingActions(reply.pendingActions);
             if (state.followLatest) {
                 scrollToTopOf(node);
             }

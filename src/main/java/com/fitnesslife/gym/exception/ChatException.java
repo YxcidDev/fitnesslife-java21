@@ -74,4 +74,18 @@ public class ChatException extends DomainException {
         return new ChatException(HttpStatus.NOT_FOUND, "KNOWLEDGE_DOCUMENT_NOT_FOUND",
                 "Documento no encontrado", null);
     }
+
+    public static ChatException actionNotFound() {
+        return new ChatException(HttpStatus.NOT_FOUND, "ACTION_NOT_FOUND", "Solicitud no encontrada", null);
+    }
+
+    public static ChatException actionExpired() {
+        return new ChatException(HttpStatus.GONE, "ACTION_EXPIRED",
+                "La solicitud expiró. Pídesela de nuevo al asistente.", null);
+    }
+
+    public static ChatException actionAlreadyResolved() {
+        return new ChatException(HttpStatus.CONFLICT, "ACTION_ALREADY_RESOLVED",
+                "Esta solicitud ya fue procesada.", null);
+    }
 }

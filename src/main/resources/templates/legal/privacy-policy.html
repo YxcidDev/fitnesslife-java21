@@ -15,7 +15,7 @@
         <a th:href="@{/}" class="legal-back">&larr; Volver al inicio</a>
 
         <h1>Política de Tratamiento de Datos Personales</h1>
-        <p class="legal-updated">Última actualización: 6 de octubre de 2026</p>
+        <p class="legal-updated">Última actualización: 19 de noviembre de 2026</p>
 
         <h2>1. Responsable del tratamiento</h2>
         <p>
@@ -115,9 +115,24 @@
             Para generar cada respuesta, el texto de su pregunta, una parte limitada de su conversación reciente
             y los fragmentos de documentos pertinentes se envían a proveedores externos: Groq (modelo de
             lenguaje) y Voyage AI, a través de MongoDB Atlas (búsqueda semántica). Estos proveedores pueden estar
-            ubicados fuera de Colombia, por lo que aplica lo indicado en la sección 5. No enviamos su nombre,
-            correo ni otros datos de su cuenta a estos proveedores. Le pedimos no escribir en el asistente datos
-            sensibles (por ejemplo, de salud) ni información de terceras personas.
+            ubicados fuera de Colombia, por lo que aplica lo indicado en la sección 5.
+        </p>
+        <p>
+            Cuando usted pregunta por su cuenta o por las clases (por ejemplo, la vigencia de su plan, el estado de
+            su último pago o los cupos de una clase), el asistente consulta esa información en nuestra base de datos
+            y envía a Groq únicamente los datos mínimos necesarios para responder: nombre del plan, fechas de
+            vigencia, estado de pagos recientes y si usted está inscrito en una clase. No enviamos su nombre, correo
+            electrónico, teléfono, número de identificación ni datos bancarios o de la transacción. Registramos cada
+            consulta que el asistente hace a su cuenta (qué consulta, cuándo y un resumen de su resultado) con fines
+            de seguridad y auditoría. Le pedimos no escribir en el asistente datos sensibles (por ejemplo, de salud)
+            ni información de terceras personas.
+        </p>
+        <p>
+            El asistente puede preparar solicitudes para inscribirlo en una clase o cancelar su inscripción, pero
+            nunca las ejecuta por sí mismo: solo se realizan cuando usted las confirma con un botón dentro de los 10
+            minutos siguientes. Registramos cada solicitud preparada y si usted la confirmó, la canceló o expiró,
+            con fines de seguridad y auditoría, y conservamos esos registros el mismo tiempo que su historial de
+            conversación.
         </p>
         <p>
             Sus conversaciones se eliminan automáticamente cuando llevan 90 días sin actividad, y usted puede

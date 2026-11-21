@@ -16,9 +16,14 @@ import com.fitnesslife.gym.dto.ChatConversationResponse;
 import com.fitnesslife.gym.dto.ChatMessageRequest;
 import com.fitnesslife.gym.dto.ChatMessageResponse;
 import com.fitnesslife.gym.dto.ChatReplyResponse;
+import com.fitnesslife.gym.dto.PendingActionResponse;
+import com.fitnesslife.gym.dto.PendingActionResultResponse;
 import com.fitnesslife.gym.mapper.ChatMapper;
+import com.fitnesslife.gym.model.PendingAction;
 import com.fitnesslife.gym.service.ChatConversationService;
 import com.fitnesslife.gym.service.ChatService;
+import com.fitnesslife.gym.service.PendingActionService;
+import com.fitnesslife.gym.service.PendingActionService.PendingActionResult;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -32,13 +37,15 @@ public class ChatController {
 
     private final ChatService chatService;
     private final ChatConversationService conversationService;
+    private final PendingActionService pendingActionService;
     private final ChatMapper mapper;
 
     @PostMapping("/messages")
     public ChatReplyResponse sendMessage(@Valid @RequestBody ChatMessageRequest request, Principal principal) {
         ChatService.Reply reply = chatService.sendMessage(principal.getName(), request.conversationId(),
                 request.message());
-        return new ChatReplyResponse(reply.conversationId(), mapper.toResponse(reply.message()), reply.grounded());
+        return new ChatReplyResponse(reply.conversationId(), mapper.toResponse(reply.message()), reply.grounded(),
+                reply.pendingActions().stream().map(this::toResponse).toList());
     }
 
     @PostMapping("/conversations")
@@ -72,5 +79,29 @@ public class ChatController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteConversation(@PathVariable String id, Principal principal) {
         conversationService.delete(principal.getName(), id);
+    }
+
+    @GetMapping("/actions/pending")
+    public List<PendingActionResponse> pendingActions(Principal principal) {
+        return pendingActionService.findWaitingForEmail(principal.getName()).stream().map(this::toResponse).toList();
+    }
+
+    @PostMapping("/actions/{id}/confirm")
+    public PendingActionResultResponse confirmAction(@PathVariable String id, Principal principal) {
+        return toResponse(pendingActionService.confirm(id, principal.getName()));
+    }
+
+    @PostMapping("/actions/{id}/cancel")
+    public PendingActionResultResponse cancelAction(@PathVariable String id, Principal principal) {
+        return toResponse(pendingActionService.decline(id, principal.getName()));
+    }
+
+    private PendingActionResponse toResponse(PendingAction action) {
+        return new PendingActionResponse(action.getId(), action.getConversationId(), action.getType(),
+                action.getSummary(), action.getExpiresAt());
+    }
+
+    private PendingActionResultResponse toResponse(PendingActionResult result) {
+        return new PendingActionResultResponse(result.id(), result.status(), result.message());
     }
 }

@@ -40,6 +40,7 @@ public class AdminPlanController {
 
         model.addAttribute("plans", plansPage.getContent());
         model.addAttribute("currentPage", page);
+        model.addAttribute("activePage", "planes");
         model.addAttribute("totalPages", plansPage.getTotalPages());
         model.addAttribute("totalItems", plansPage.getTotalElements());
         model.addAttribute("newPlan", new Plan());

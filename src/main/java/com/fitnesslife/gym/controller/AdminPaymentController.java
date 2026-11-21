@@ -49,6 +49,7 @@ public class AdminPaymentController {
 
         model.addAttribute("payments", paymentsPage.getContent());
         model.addAttribute("currentPage", page);
+        model.addAttribute("activePage", "pagos");
         model.addAttribute("totalPages", paymentsPage.getTotalPages());
         model.addAttribute("totalItems", paymentsPage.getTotalElements());
         model.addAttribute("pageSize", size);

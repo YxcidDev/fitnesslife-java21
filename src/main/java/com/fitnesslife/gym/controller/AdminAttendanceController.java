@@ -47,6 +47,7 @@ public class AdminAttendanceController {
 
         model.addAttribute("accesses", pageData.getContent());
         model.addAttribute("currentPage", page);
+        model.addAttribute("activePage", "accesos");
         model.addAttribute("totalPages", pageData.getTotalPages());
         model.addAttribute("totalItems", pageData.getTotalElements());
         model.addAttribute("pageSize", size);

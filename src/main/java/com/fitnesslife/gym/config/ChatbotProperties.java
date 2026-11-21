@@ -16,7 +16,8 @@ public record ChatbotProperties(
         @Valid @DefaultValue Limits limits,
         @Valid @DefaultValue Conversation conversation,
         @Valid @DefaultValue Ingestion ingestion,
-        @Valid @DefaultValue Assistant assistant) {
+        @Valid @DefaultValue Assistant assistant,
+        @Valid @DefaultValue Tools tools) {
 
     public record Llm(
             @DefaultValue("0.2") double temperature,
@@ -60,6 +61,18 @@ public record ChatbotProperties(
     }
 
     public record Assistant(
-            @DefaultValue("info@fitnesslife.com · +57 323 4580755") String contact) {
+            @DefaultValue("info@fitnesslife.com · +57 323 4580755") String contact,
+            @DefaultValue("No tengo información suficiente para responder tu consulta. Puedes comunicarte con nuestro equipo: {contact}") String noAnswerMessage,
+            @DefaultValue("¡Hola! Soy el asistente virtual de Fitness Life. ¿En qué puedo ayudarte?") String greetingMessage,
+            @DefaultValue("¡Con mucho gusto! Estoy aquí para ayudarte.") String thanksMessage) {
+    }
+
+    public record Tools(
+            @DefaultValue("America/Bogota") String timezone,
+            @DefaultValue("3") @Min(1) @Max(6) int maxCallsPerMessage,
+            @DefaultValue("8") @Min(1) @Max(20) int maxClassesPerCall,
+            @DefaultValue("14") @Min(0) @Max(60) int maxDaysAhead,
+            @DefaultValue("10") @Min(1) @Max(60) int pendingActionTtlMinutes,
+            @DefaultValue("3") @Min(1) @Max(10) int maxPendingActions) {
     }
 }

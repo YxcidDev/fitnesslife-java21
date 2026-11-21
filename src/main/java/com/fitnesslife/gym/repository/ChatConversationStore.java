@@ -68,6 +68,16 @@ public class ChatConversationStore {
         return mongo.updateFirst(query, update, ChatConversation.class).getModifiedCount() > 0;
     }
 
+    public boolean appendNote(String id, String userId, ChatMessage message, int maxMessages, Instant now) {
+        if (!ObjectId.isValid(id)) {
+            return false;
+        }
+        Query query = new Query(Criteria.where("id").is(id).and("userId").is(userId)
+                .and("messageCount").lte(maxMessages - 1));
+        Update update = new Update().push("messages", message).set("updatedAt", now).inc("messageCount", 1);
+        return mongo.updateFirst(query, update, ChatConversation.class).getModifiedCount() > 0;
+    }
+
     public boolean delete(String id, String userId) {
         if (!ObjectId.isValid(id)) {
             return false;

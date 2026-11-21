@@ -53,6 +53,7 @@ public class RetentionHistoryController {
 
         model.addAttribute("assignments", result.assignments().getContent());
         model.addAttribute("currentPage", result.assignments().getNumber());
+        model.addAttribute("activePage", "retention");
         model.addAttribute("totalPages", result.assignments().getTotalPages());
         model.addAttribute("totalItems", result.assignments().getTotalElements());
         model.addAttribute("campaigns", result.campaigns());
