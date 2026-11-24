@@ -47,19 +47,15 @@ public class QrCodeController {
         User user = userService.getUserOrThrow(principal.getName());
 
         if (!qrCodeService.qrCodeExists(user)) {
-            log.info("QR inexistente o del esquema anterior, regenerando para usuario: {}",
-                    user.getIdentification());
+            log.info("Generando QR para usuario: {}", user.getIdentification());
             qrCodeService.generateAndSaveQRCode(user);
         }
 
-        BufferedImage qrImage = qrCodeService.getQRCodeImage(user);
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ImageIO.write(qrImage, "png", baos);
-
+        byte[] png = qrCodeService.getQRCodePng(user);
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_PNG)
-                .body(baos.toByteArray());
+                .header("Cache-Control", "no-store")
+                .body(png);
     }
 
     @PostMapping("/api/qr/refresh")
