@@ -4,7 +4,6 @@
     --bg-body: #1d1b1a;
     --primary-color: #eb6608;
     --success-color: #4CAF50;
-    --warning-color: #ffa726;
     --card-bg: #323333;
     --text-white: #ffffff;
     --text-gray: #d3d3d3;
@@ -68,32 +67,6 @@ body {
 
 .page-divider {
     display: none;
-}
-
-.alert-custom {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem 1.5rem;
-    border-radius: 4px;
-    margin-bottom: 2rem;
-    font-weight: 500;
-}
-
-.alert-custom.success {
-    background: rgba(76, 175, 80, 0.1);
-    border: 2px solid var(--success-color);
-    color: var(--success-color);
-}
-
-.alert-custom.warning {
-    background: rgba(255, 167, 38, 0.1);
-    border: 2px solid var(--warning-color);
-    color: var(--warning-color);
-}
-
-.alert-custom i {
-    font-size: 24px;
 }
 
 .section-title {
@@ -452,8 +425,4 @@ body {
         font-size: 14px;
     }
 
-    .alert-custom {
-        padding: 0.875rem 1rem;
-        font-size: 14px;
-    }
 }

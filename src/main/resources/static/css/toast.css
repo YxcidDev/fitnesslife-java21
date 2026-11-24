@@ -1,0 +1,190 @@
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600&display=swap');
+
+.fl-toast-stack {
+    --fl-toast-bg: var(--card-bg, #323333);
+    --fl-toast-bg-hover: #3a3b3b;
+    --fl-toast-text: var(--text-white, #ffffff);
+    --fl-toast-muted: var(--text-gray, #d3d3d3);
+    position: fixed;
+    top: 1rem;
+    left: 50%;
+    z-index: 1100;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: min(420px, calc(100vw - 2rem));
+    margin: 0;
+    padding: 0;
+    transform: translateX(-50%);
+    pointer-events: none;
+    font-family: "Work Sans", sans-serif;
+}
+
+.fl-toast-stack *,
+.fl-toast-stack *::before,
+.fl-toast-stack *::after {
+    box-sizing: border-box;
+}
+
+.fl-toast {
+    --fl-toast-accent: var(--fl-toast-muted);
+    --fl-toast-label: var(--fl-toast-muted);
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.9rem 0.75rem 1.05rem 1rem;
+    background: var(--fl-toast-bg);
+    border-radius: 4px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+    pointer-events: auto;
+    animation: fl-toast-in 0.18s ease-out;
+    transition: background 0.2s, opacity 0.16s, transform 0.16s;
+}
+
+.fl-toast:hover {
+    background: var(--fl-toast-bg-hover);
+}
+
+.fl-toast--success {
+    --fl-toast-accent: #2ecc71;
+    --fl-toast-label: #2ecc71;
+}
+
+.fl-toast--error {
+    --fl-toast-accent: #e74c3c;
+    --fl-toast-label: #ff7566;
+}
+
+.fl-toast--warning {
+    --fl-toast-accent: var(--primary-color, #eb6608);
+    --fl-toast-label: var(--primary-color, #eb6608);
+}
+
+.fl-toast--info {
+    --fl-toast-accent: #d3d3d3;
+    --fl-toast-label: #d3d3d3;
+}
+
+.fl-toast--leaving {
+    opacity: 0;
+    transform: translateY(-6px);
+}
+
+.fl-toast__body {
+    flex: 1;
+    min-width: 0;
+}
+
+.fl-toast__label {
+    margin: 0 0 0.2rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    color: var(--fl-toast-label);
+}
+
+.fl-toast__count {
+    margin-left: 0.4rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    color: var(--fl-toast-muted);
+}
+
+.fl-toast__count[hidden] {
+    display: none;
+}
+
+.fl-toast__message {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    color: var(--fl-toast-text);
+    overflow-wrap: anywhere;
+}
+
+.fl-toast__close {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    margin: -0.25rem -0.1rem 0 0;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: var(--fl-toast-muted);
+    font-family: inherit;
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.2s, background 0.2s;
+}
+
+.fl-toast__close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--fl-toast-text);
+}
+
+.fl-toast__close:focus-visible {
+    outline: 2px solid var(--fl-toast-text);
+    outline-offset: 1px;
+}
+
+
+@keyframes fl-toast-in {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+/* Inline notice: same family as the toast, for messages that stay in the page (modals, panels) */
+.fl-notice {
+    --fl-notice-border: rgba(211, 211, 211, 0.3);
+    margin: 0 0 1rem;
+    padding: 0.75rem 1rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--fl-notice-border);
+    border-radius: 4px;
+    font-family: "Work Sans", sans-serif;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--text-white, #ffffff);
+    overflow-wrap: anywhere;
+}
+
+.fl-notice--success { --fl-notice-border: rgba(46, 204, 113, 0.45); }
+.fl-notice--warning { --fl-notice-border: rgba(235, 102, 8, 0.55); }
+.fl-notice--error { --fl-notice-border: rgba(231, 76, 60, 0.5); }
+
+@media (max-width: 575px) {
+    .fl-toast-stack {
+        top: calc(env(safe-area-inset-top, 0px) + 0.5rem);
+        right: 0.5rem;
+        left: 0.5rem;
+        width: auto;
+        transform: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fl-toast {
+        animation: none;
+        transition: none;
+    }
+}
+
+@media print {
+    .fl-toast-stack {
+        display: none;
+    }
+}

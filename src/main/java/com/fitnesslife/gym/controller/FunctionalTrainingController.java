@@ -116,11 +116,11 @@ public class FunctionalTrainingController {
                               RedirectAttributes redirectAttributes) {
         try {
             service.inscribirUsuario(idFunctionalTraining, principal.getName());
-            redirectAttributes.addFlashAttribute("enrollmentSuccess",
+            redirectAttributes.addFlashAttribute("success",
                     "Quedaste inscrito en " + classLabel(idFunctionalTraining) + ".");
         } catch (DomainException e) {
             log.warn("Inscripción rechazada: {}", e.getMessage());
-            redirectAttributes.addFlashAttribute("enrollmentError", userMessage(e));
+            redirectAttributes.addFlashAttribute("error", userMessage(e));
         }
         return "redirect:/home";
     }
@@ -130,11 +130,11 @@ public class FunctionalTrainingController {
                                       RedirectAttributes redirectAttributes) {
         try {
             service.cancelarInscripcion(id, principal.getName());
-            redirectAttributes.addFlashAttribute("enrollmentSuccess",
+            redirectAttributes.addFlashAttribute("success",
                     "Cancelaste tu inscripción en " + classLabel(id) + ". No hay ninguna sanción para tu plan.");
         } catch (DomainException e) {
             log.warn("Cancelación rechazada: {}", e.getMessage());
-            redirectAttributes.addFlashAttribute("enrollmentError", userMessage(e));
+            redirectAttributes.addFlashAttribute("error", userMessage(e));
         }
         return "redirect:/home";
     }

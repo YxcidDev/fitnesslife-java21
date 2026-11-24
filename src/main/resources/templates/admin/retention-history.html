@@ -555,17 +555,8 @@
     </div>
 </div>
 
-<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999;">
-    <div id="retToast" class="toast align-items-center text-white border-0"
-         style="background: var(--primary-color);" role="alert">
-        <div class="d-flex">
-            <div class="toast-body" id="retToastMsg">Estado actualizado.</div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-        </div>
-    </div>
-</div>
-
 <div th:replace="~{fragments/chat-widget :: chat-widget}"></div>
+<div th:replace="~{fragments/toast :: toasts}"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script th:src="@{/js/retention-history.js}"></script>

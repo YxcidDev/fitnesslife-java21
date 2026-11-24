@@ -10,7 +10,6 @@
   const MAX_BYTES = parseInt(page.dataset.maxBytes, 10) || 5 * 1024 * 1024;
   const ALLOWED_EXTENSIONS = ["pdf", "md", "txt", "html"];
   const POLL_MS = 5000;
-  const SUCCESS_DISMISS_MS = 5000;
 
   const AUDIENCE_LABELS = {
     ALL: "Todos",
@@ -32,17 +31,11 @@
     PENDING: "Pendiente",
     RETIRED: "Retirado",
   };
-  const ALERT_STYLES = {
-    success: { css: "alert-success", icon: "fa-check-circle" },
-    error: { css: "alert-danger", icon: "fa-exclamation-circle" },
-    info: { css: "alert-secondary", icon: "fa-info-circle" },
-  };
 
   const byId = function (id) {
     return document.getElementById(id);
   };
   const el = {
-    alerts: byId("kbAlerts"),
     statDocuments: byId("kbStatDocuments"),
     statChunks: byId("kbStatChunks"),
     statModel: byId("kbStatModel"),
@@ -148,39 +141,28 @@
     return payload;
   }
 
-  function showMessage(text, type) {
-    const style = ALERT_STYLES[type] || ALERT_STYLES.info;
-    const alert = document.createElement("div");
-    alert.className = "alert " + style.css + " alert-dismissible fade show";
-    alert.setAttribute("role", "alert");
+  let progressToast = null;
 
-    const icon = document.createElement("i");
-    icon.className = "fas " + style.icon + " me-2";
-    const message = document.createElement("span");
-    message.textContent = text;
-    const close = document.createElement("button");
-    close.type = "button";
-    close.className = "btn-close";
-    close.setAttribute("data-bs-dismiss", "alert");
-    close.setAttribute("aria-label", "Cerrar");
-
-    alert.append(icon, message, close);
-    el.alerts.replaceChildren(alert);
-
-    if (type !== "info") {
-      el.alerts.scrollIntoView({ behavior: "smooth", block: "start" });
+  function closeProgress() {
+    if (progressToast) {
+      progressToast.close();
+      progressToast = null;
     }
-    if (type === "success") {
-      setTimeout(function () {
-        if (alert.isConnected) {
-          bootstrap.Alert.getOrCreateInstance(alert).close();
-        }
-      }, SUCCESS_DISMISS_MS);
+  }
+
+  function showMessage(text, type) {
+    closeProgress();
+    if (type === "info") {
+      progressToast = FLToast.info(text, { duration: 0 });
+    } else if (type === "success") {
+      FLToast.success(text);
+    } else {
+      FLToast.error(text);
     }
   }
 
   function clearMessage() {
-    el.alerts.replaceChildren();
+    closeProgress();
   }
 
   function showModalError(text) {

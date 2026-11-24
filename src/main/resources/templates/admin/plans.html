@@ -26,32 +26,6 @@
 
     <div class="main-content">
       <div class="container-fluid p-4">
-        <div
-          th:if="${success}"
-          class="alert alert-success alert-dismissible fade show"
-          role="alert"
-        >
-          <i class="fas fa-check-circle me-2"></i>
-          <span th:text="${success}"></span>
-          <button
-            type="button"
-            class="btn-close"
-            data-bs-dismiss="alert"
-          ></button>
-        </div>
-        <div
-          th:if="${error}"
-          class="alert alert-danger alert-dismissible fade show"
-          role="alert"
-        >
-          <i class="fas fa-exclamation-circle me-2"></i>
-          <span th:text="${error}"></span>
-          <button
-            type="button"
-            class="btn-close"
-            data-bs-dismiss="alert"
-          ></button>
-        </div>
 
         <h1 class="page-title">Planes</h1>
 
@@ -460,6 +434,7 @@
     </div>
 
     <div th:replace="~{fragments/chat-widget :: chat-widget}"></div>
+    <div th:replace="~{fragments/toast :: toasts}"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script th:src="@{/js/PlanTable.js}"></script>

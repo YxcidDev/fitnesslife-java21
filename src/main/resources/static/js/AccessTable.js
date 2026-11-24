@@ -19,12 +19,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    document.querySelectorAll('.alert').forEach(alert => {
-        setTimeout(() => {
-            const bsAlert = new bootstrap.Alert(alert);
-            bsAlert.close();
-        }, 5000);
-    });
 });
 
 function escapeHtml(value) {
@@ -106,7 +100,7 @@ function viewAccessDetails(button) {
                             <span class="badge bg-success">Activa</span>
                         </div>
                         ` : `
-                        <div class="alert alert-warning">
+                        <div class="fl-notice fl-notice--warning">
                             El usuario no tiene un plan activo registrado en este acceso.
                         </div>
                         `}
@@ -126,9 +120,8 @@ function viewAccessDetails(button) {
         .catch(error => {
             console.error('Error:', error);
             modalContent.innerHTML = `
-                <div class="alert alert-danger">
-                    <i class="fas fa-exclamation-circle me-2"></i>
-                    Error al cargar los detalles del acceso
+                <div class="fl-notice fl-notice--error">
+                    No se pudieron cargar los detalles del acceso.
                 </div>
             `;
         });

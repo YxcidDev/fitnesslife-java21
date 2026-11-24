@@ -32,14 +32,7 @@
         return e;
     }
 
-    function showError(msg) {
-        var box = $('alertBox');
-        box.textContent = msg;
-        box.classList.remove('d-none');
-        box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-
-    function clearError() { $('alertBox').classList.add('d-none'); }
+    function showError(msg) { FLToast.error(msg); }
 
     function handleResponse(res) {
         if (res.ok) { return res.json(); }
@@ -108,7 +101,6 @@
     }
 
     function loadDefaults() {
-        clearError();
         return fetch('/api/retention/defaults', { headers: { 'Accept': 'application/json' } })
             .then(handleResponse)
             .then(function (data) {
@@ -166,7 +158,6 @@
 
     function saveCampaign() {
         if (!currentRunId) { return; }
-        clearError();
 
         var btn = $('saveBtn');
         var original = btn.innerHTML;
@@ -188,7 +179,7 @@
 
                 var box = $('saveResult');
                 box.replaceChildren();
-                box.className = 'retention-alert retention-alert--info mt-3';
+                box.className = 'retention-alert retention-alert--success mt-3';
                 box.appendChild(document.createTextNode(
                     '«' + saved.name + '» guardada con ' + num.format(saved.assignmentCount) + ' asignaciones. '));
                 var link = document.createElement('a');
@@ -332,7 +323,6 @@
 
     $('optForm').addEventListener('submit', function (ev) {
         ev.preventDefault();
-        clearError();
         if (!ev.target.checkValidity()) {
             ev.target.reportValidity();
             return;

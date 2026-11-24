@@ -13,16 +13,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const inputEmail   = document.getElementById("resetEmail");
     const btnSendOtp   = document.getElementById("btnSendOtp");
-    const msgEmail     = document.getElementById("msgEmail");
 
     const inputOtp     = document.getElementById("resetOtp");
     const inputNewPass = document.getElementById("resetNewPass");
     const inputConfirm = document.getElementById("resetConfirmPass");
     const btnReset     = document.getElementById("btnReset");
-    const msgOtp       = document.getElementById("msgOtp");
     const btnBackEmail = document.getElementById("btnBackEmail");
 
-    let savedEmail  = "";
+    let savedEmail = "";
 
     document.getElementById("btnForgotPassword").addEventListener("click", (e) => {
         e.preventDefault();
@@ -34,79 +32,62 @@ document.addEventListener("DOMContentLoaded", () => {
         const email = inputEmail.value.trim();
 
         if (!isValidEmail(email)) {
-            showMsg(msgEmail, "Ingresa un email válido.", "danger");
+            FLToast.error("Ingresa un email válido.");
             return;
         }
 
         setLoading(btnSendOtp, true, "Enviando...");
-        clearMsg(msgEmail);
 
         try {
-            const res  = await fetch("/api/password/send-otp", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    "X-XSRF-TOKEN": getCsrfToken()
-                },
-                body:    `email=${encodeURIComponent(email)}`
-            });
-            const data = await res.json();
+            const { data } = await post("/api/password/send-otp", `email=${encodeURIComponent(email)}`);
 
-            if (data.ok) {
+            if (data && data.ok) {
                 savedEmail = email;
                 showStep("otp");
-                showMsg(msgOtp, "Código enviado. Revisa tu correo.", "success");
+                FLToast.success("Código enviado. Revisa tu correo.");
             } else {
-                showMsg(msgEmail, data.msg || "No se pudo enviar el código.", "warning");
+                FLToast.warning(messageOf(data, "No se pudo enviar el código."));
             }
         } catch (err) {
-            showMsg(msgEmail, "Error de conexión. Intenta de nuevo.", "danger");
+            FLToast.error("Error de conexión. Intenta de nuevo.");
         } finally {
             setLoading(btnSendOtp, false, "Enviar código");
         }
     });
 
     btnReset.addEventListener("click", async () => {
-        const otp        = inputOtp.value.trim();
-        const newPass    = inputNewPass.value;
+        const otp         = inputOtp.value.trim();
+        const newPass     = inputNewPass.value;
         const confirmPass = inputConfirm.value;
 
         if (otp.length !== 6 || isNaN(otp)) {
-            showMsg(msgOtp, "El código debe ser de 6 dígitos.", "danger");
+            FLToast.error("El código debe ser de 6 dígitos.");
             return;
         }
         if (newPass.length < 6) {
-            showMsg(msgOtp, "La contraseña debe tener al menos 6 caracteres.", "danger");
+            FLToast.error("La contraseña debe tener al menos 6 caracteres.");
             return;
         }
         if (newPass !== confirmPass) {
-            showMsg(msgOtp, "Las contraseñas no coinciden.", "danger");
+            FLToast.error("Las contraseñas no coinciden.");
             return;
         }
 
         setLoading(btnReset, true, "Verificando...");
-        clearMsg(msgOtp);
 
         try {
-            const res  = await fetch("/api/password/reset", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    "X-XSRF-TOKEN": getCsrfToken()
-                },
-                body: `email=${encodeURIComponent(savedEmail)}`
-                    + `&otp=${encodeURIComponent(otp)}`
-                    + `&newPassword=${encodeURIComponent(newPass)}`
-            });
-            const data = await res.json();
+            const { data } = await post("/api/password/reset",
+                `email=${encodeURIComponent(savedEmail)}`
+                + `&otp=${encodeURIComponent(otp)}`
+                + `&newPassword=${encodeURIComponent(newPass)}`);
 
-            if (data.ok) {
+            if (data && data.ok) {
                 showStep("done");
             } else {
-                showMsg(msgOtp, data.msg || "Error al actualizar la contraseña.", "danger");
+                FLToast.error(messageOf(data, "Error al actualizar la contraseña."));
             }
         } catch (err) {
-            showMsg(msgOtp, "Error de conexión. Intenta de nuevo.", "danger");
+            FLToast.error("Error de conexión. Intenta de nuevo.");
         } finally {
             setLoading(btnReset, false, "Cambiar contraseña");
         }
@@ -116,6 +97,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
     modalEl.addEventListener("hidden.bs.modal", resetModal);
 
+    async function post(url, body) {
+        const res = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "X-XSRF-TOKEN": getCsrfToken()
+            },
+            body: body
+        });
+        const data = await res.json().catch(() => null);
+        return { res, data };
+    }
+
+    function messageOf(data, fallback) {
+        return (data && (data.msg || data.message)) || fallback;
+    }
+
     function showStep(step) {
         stepEmail.classList.add("d-none");
         stepOtp.classList.add("d-none");
@@ -124,17 +122,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (step === "email") stepEmail.classList.remove("d-none");
         if (step === "otp")   stepOtp.classList.remove("d-none");
         if (step === "done")  stepDone.classList.remove("d-none");
-    }
-
-    function showMsg(el, text, type) {
-        el.textContent  = text;
-        el.className    = `alert alert-${type} py-2 small mt-2`;
-        el.style.display = "block";
-    }
-
-    function clearMsg(el) {
-        el.textContent   = "";
-        el.style.display = "none";
     }
 
     function setLoading(btn, loading, text) {
@@ -148,13 +135,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function resetModal() {
-        inputEmail.value    = "";
-        inputOtp.value      = "";
-        inputNewPass.value  = "";
-        inputConfirm.value  = "";
-        savedEmail       = "";
-        clearMsg(msgEmail);
-        clearMsg(msgOtp);
+        inputEmail.value   = "";
+        inputOtp.value     = "";
+        inputNewPass.value = "";
+        inputConfirm.value = "";
+        savedEmail         = "";
         showStep("email");
     }
 });

@@ -128,14 +128,17 @@ function triggerRecalculate() {
         method: 'POST',
         headers: { 'X-XSRF-TOKEN': getCsrfToken() }
     })
-        .then(function (res) { return res.json(); })
+        .then(function (res) {
+            if (!res.ok) { throw new Error('recalculate failed'); }
+            return res.json();
+        })
         .then(function (data) {
             const seg = (data.elapsedMs / 1000).toFixed(1);
-            showToast('✓ Predicción completada: ' + data.processed + ' usuarios en ' + seg + 's');
-            setTimeout(function () { window.location.reload(); }, 1500);
+            FLToast.later('success', 'Predicción completada: ' + data.processed + ' usuarios en ' + seg + ' s.');
+            window.location.reload();
         })
         .catch(function () {
-            showToast('Error al procesar. Intenta de nuevo.');
+            showToast('No se pudo procesar la predicción. Inténtalo de nuevo.', 'error');
             btn.disabled = false;
             btn.innerHTML = '<i class="bi bi-arrow-clockwise me-2"></i>Actualizar predicción';
         });
@@ -169,7 +172,7 @@ function sendPromotion() {
         'El equipo de Fitness Life'
     );
     window.open('mailto:' + (user.email || '') + '?subject=' + subject + '&body=' + body);
-    showToast('Promoción enviada a ' + user.name);
+    showToast('Correo de promoción preparado para ' + user.name + '. Revisa tu cliente de correo para enviarlo.');
 }
 
 function inviteToClass() {
@@ -179,7 +182,7 @@ function inviteToClass() {
     const email = (user.email || '').trim();
 
     if (!email) {
-        showToast('El usuario no tiene un correo registrado.');
+        showToast('El usuario no tiene un correo registrado.', 'warning');
         return;
     }
 
@@ -209,11 +212,6 @@ function inviteToClass() {
         '. Revisa tu correo para enviarla.');
 }
 
-function showToast(message) {
-    const toastEl  = document.getElementById('churnToast');
-    const toastMsg = document.getElementById('toastMsg');
-    if (!toastEl || !toastMsg) return;
-    toastMsg.textContent = message;
-    const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
-    toast.show();
+function showToast(message, type) {
+    FLToast.show({ type: type || 'info', message: message });
 }

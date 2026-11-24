@@ -458,55 +458,6 @@ h6 {
   margin-bottom: 1rem;
 }
 
-.home-alert {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-  padding: 0.9rem 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  color: var(--text-white);
-  font-size: 14px;
-  line-height: 1.5;
-  transition: opacity 0.3s;
-}
-
-.home-alert--error {
-  border-color: var(--primary-color);
-}
-
-.home-alert--leaving {
-  opacity: 0;
-}
-
-.home-alert > i {
-  flex-shrink: 0;
-  margin-top: 2px;
-  color: var(--primary-color);
-}
-
-.home-alert__text {
-  flex: 1;
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.home-alert__close {
-  flex-shrink: 0;
-  padding: 0 0.25rem;
-  background: transparent;
-  border: none;
-  color: var(--text-gray);
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.home-alert__close:hover {
-  color: var(--text-white);
-}
-
 @media screen and (max-width: 768px) {
   .dashboard-container {
     padding: 1.5rem 1rem 6rem;

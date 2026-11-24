@@ -15,15 +15,6 @@
 <body>
     <th:block th:insert="~{fragments/top-navbar}"></th:block>
 
-    <div th:if="${success}" class="alert alert-success alert-dismissible fade show mx-3 mt-3" role="alert">
-        <span th:text="${success}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mx-3 mt-3" role="alert">
-        <span th:text="${error}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-
     <div class="plan-card">
         <span class="plan-badge">Plan actual</span>
         <h2 class="plan-name">
@@ -212,6 +203,7 @@
 
     <div th:replace="fragments/bottom-navbar :: bottom-navbar"></div>
     <div th:replace="~{fragments/chat-widget :: chat-widget}"></div>
+    <div th:replace="~{fragments/toast :: toasts}"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script th:src="@{/js/user-profile-btn.js}"></script>

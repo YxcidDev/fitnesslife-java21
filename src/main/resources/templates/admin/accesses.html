@@ -19,17 +19,6 @@
     <div class="main-content">
         <div class="container-fluid p-4">
 
-            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="fas fa-check-circle me-2"></i>
-                <span th:text="${success}"></span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="fas fa-exclamation-circle me-2"></i>
-                <span th:text="${error}"></span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-
             <h1 class="page-title">Accesos</h1>
 
             <div class="table-container">
@@ -207,10 +196,8 @@
                                 <option value="DENIED">Denegado</option>
                             </select>
                         </div>
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>
-                            <small>Este cambio es solo para fines de registro y no afecta el estado real del
-                                usuario.</small>
+                        <div class="fl-notice">
+                            Este cambio es solo para fines de registro y no afecta el estado real del usuario.
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -224,6 +211,7 @@
     </div>
 
     <div th:replace="~{fragments/chat-widget :: chat-widget}"></div>
+    <div th:replace="~{fragments/toast :: toasts}"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script th:src="@{/js/AccessTable.js}"></script>

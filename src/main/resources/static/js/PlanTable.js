@@ -76,17 +76,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
             } catch (error) {
                 console.error('Error:', error);
-                alert('Error al cargar los datos del plan');
+                FLToast.error('No se pudieron cargar los datos del plan.');
             }
         });
     });
 
-    document.querySelectorAll('.alert').forEach(alert => {
-        setTimeout(() => {
-            const bsAlert = new bootstrap.Alert(alert);
-            bsAlert.close();
-        }, 5000);
-    });
 });
 
 function showBenefitsModal(button) {
@@ -107,7 +101,7 @@ function showBenefitsModal(button) {
                 plan.benefits.forEach(benefit => {
                     const li = document.createElement('li');
                     li.className = 'list-group-item bg-transparent text-white border-0';
-                    li.innerHTML = benefit;
+                    li.textContent = benefit;
                     benefitsList.appendChild(li);
                 });
             } else {

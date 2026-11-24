@@ -1,100 +1,75 @@
 'use strict';
 
-const DISPLAY_DURATION      = 4000;
-const FRONTEND_DEDUP_MS     = 3000;
-const QR_MIN_LENGTH         = 4;
-const API_ENDPOINT          = '/api/attendance/verify';
+const DISPLAY_DURATION  = 4000;
+const FRONTEND_DEDUP_MS = 3000;
+const QR_MIN_LENGTH     = 4;
+const QR_MAX_LENGTH     = 200;
+const API_ENDPOINT      = '/api/attendance/verify';
+const GYM_TIMEZONE      = 'America/Bogota';
+const MESSAGE_MS        = 4000;
+const ERROR_MESSAGE_MS  = 6000;
+
+const STATUS_CONFIG = {
+    ALLOWED:   { state: 'allowed', headline: 'Acceso permitido' },
+    DENIED:    { state: 'denied',  headline: 'Acceso denegado' },
+    EXIT:      { state: 'exit',    headline: 'Salida registrada' },
+    NOT_FOUND: { state: 'denied',  headline: 'Código no reconocido' },
+};
+
+class SessionError extends Error {}
 
 function getCsrfToken() {
     const match = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/);
     return match ? decodeURIComponent(match[1]) : null;
 }
 
-const qrInput           = document.getElementById('qrInput');
-const stateIdle         = document.getElementById('stateIdle');
-const stateProcessing   = document.getElementById('stateProcessing');
-const stateResult       = document.getElementById('stateResult');
+const byId = (id) => document.getElementById(id);
 
-const resultCard        = document.getElementById('resultCard');
-const resultTopbar      = document.getElementById('resultTopbar');
-const resultAvatarRing  = document.getElementById('resultAvatarRing');
-const resultPhoto       = document.getElementById('resultPhoto');
-const resultPhotoFb     = document.getElementById('resultPhotoFallback');
-const resultBadge       = document.getElementById('resultBadge');
-const resultBadgeIcon   = document.getElementById('resultBadgeIcon');
-const resultName        = document.getElementById('resultName');
-const resultPlan        = document.getElementById('resultPlan');
-const resultStatusBar   = document.getElementById('resultStatusBar');
-const resultStatusText  = document.getElementById('resultStatusText');
-const resultFooterId    = document.getElementById('resultFooterId');
-const resultFooterTime  = document.getElementById('resultFooterTime');
+const qrInput          = byId('qrInput');
+const stateIdle        = byId('stateIdle');
+const stateProcessing  = byId('stateProcessing');
+const stateResult      = byId('stateResult');
 
-const countdownBar      = document.getElementById('countdownBar');
-const countdownFill     = document.getElementById('countdownFill');
-const kioskToast        = document.getElementById('kioskToast');
+const resultPhoto      = byId('resultPhoto');
+const resultPhotoFb    = byId('resultPhotoFallback');
+const resultName       = byId('resultName');
+const resultPlan       = byId('resultPlan');
+const resultStatus     = byId('resultStatus');
+const resultDetail     = byId('resultDetail');
+const resultFooterId   = byId('resultFooterId');
+const resultFooterTime = byId('resultFooterTime');
 
-const clockTime         = document.getElementById('currentTime');
-const clockDate         = document.getElementById('currentDate');
+const countdownBar     = byId('countdownBar');
+const countdownFill    = byId('countdownFill');
+const kioskMessage     = byId('kioskMessage');
 
-let qrBuffer            = '';
-let isProcessing        = false;
-let returnTimer         = null;
-let lastScannedCode     = null;
-let lastScannedTime     = 0;
+const clockTime        = byId('currentTime');
+const clockDate        = byId('currentDate');
 
-const STATUS_CONFIG = {
-    ALLOWED: {
-        cardClass:   'card--allowed',
-        ringClass:   'ring--allowed',
-        badgeClass:  'badge--allowed',
-        barClass:    'bar--allowed',
-        badgeIcon:   'bi-check-lg',
-        topbarColor: 'var(--green)',
-        fillColor:   'var(--green)',
-    },
-    DENIED: {
-        cardClass:   'card--denied',
-        ringClass:   'ring--denied',
-        badgeClass:  'badge--denied',
-        barClass:    'bar--denied',
-        badgeIcon:   'bi-x-lg',
-        topbarColor: 'var(--red)',
-        fillColor:   'var(--red)',
-    },
-    EXIT: {
-        cardClass:   'card--exit',
-        ringClass:   'ring--exit',
-        badgeClass:  'badge--exit',
-        barClass:    'bar--exit',
-        badgeIcon:   'bi-box-arrow-right',
-        topbarColor: 'var(--blue)',
-        fillColor:   'var(--blue)',
-    },
-    NOT_FOUND: {
-        cardClass:   'card--denied',
-        ringClass:   'ring--denied',
-        badgeClass:  'badge--denied',
-        barClass:    'bar--denied',
-        badgeIcon:   'bi-person-x',
-        topbarColor: 'var(--red)',
-        fillColor:   'var(--red)',
-    },
-};
+let qrBuffer        = '';
+let isProcessing    = false;
+let returnTimer     = null;
+let lastScannedCode = null;
+let lastScannedTime = 0;
+
+const timeFormat = new Intl.DateTimeFormat('es-CO', {
+    hour: 'numeric', minute: '2-digit', hour12: true, timeZone: GYM_TIMEZONE,
+});
+const dateFormat = new Intl.DateTimeFormat('es-CO', {
+    weekday: 'long', day: 'numeric', month: 'long', timeZone: GYM_TIMEZONE,
+});
+const footerDateFormat = new Intl.DateTimeFormat('es-CO', {
+    day: 'numeric', month: 'short', year: 'numeric', timeZone: GYM_TIMEZONE,
+});
+
+function capitalize(text) {
+    return text.charAt(0).toUpperCase() + text.slice(1);
+}
 
 function updateClock() {
     const now = new Date();
-
-    const h  = String(now.getHours()).padStart(2, '0');
-    const m  = String(now.getMinutes()).padStart(2, '0');
-    clockTime.textContent = `${h}:${m}`;
-
-    const days   = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
-    const months = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
-    const d = now.getDate();
-    const dayName   = days[now.getDay()];
-    const monthName = months[now.getMonth()];
-    const year      = now.getFullYear();
-    clockDate.textContent = `${dayName} ${d} ${monthName} ${year}`;
+    clockTime.textContent = timeFormat.format(now);
+    clockDate.textContent = capitalize(dateFormat.format(now));
 }
 
 setInterval(updateClock, 1000);
@@ -106,8 +81,8 @@ function refocusInput() {
     }
 }
 
-document.addEventListener('click',     refocusInput);
-document.addEventListener('keydown',   refocusInput);
+document.addEventListener('click',   refocusInput);
+document.addEventListener('keydown', refocusInput);
 document.addEventListener('visibilitychange', () => {
     if (!document.hidden) refocusInput();
 });
@@ -152,12 +127,12 @@ async function handleQrCode(code) {
 
     const now = Date.now();
     if (code === lastScannedCode && (now - lastScannedTime) < FRONTEND_DEDUP_MS) {
-        showToast('Escaneo reciente detectado, espera un momento.');
+        showMessage('Ya leímos ese código. Espera un momento.');
         return;
     }
 
     if (!isValidQrFormat(code)) {
-        showToast('Formato de código QR no reconocido.');
+        showMessage('No reconocemos ese código QR.');
         return;
     }
 
@@ -173,15 +148,22 @@ async function handleQrCode(code) {
     showState('processing');
 
     try {
+        const headers = { 'Content-Type': 'application/json' };
+        const token = getCsrfToken();
+        if (token) {
+            headers['X-XSRF-TOKEN'] = token;
+        }
+
         const response = await fetch(API_ENDPOINT, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-XSRF-TOKEN': getCsrfToken()
-            },
+            headers: headers,
             body: JSON.stringify({ qrCode: code }),
+            credentials: 'same-origin',
         });
 
+        if (response.redirected || response.status === 401 || response.status === 403) {
+            throw new SessionError();
+        }
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}`);
         }
@@ -191,13 +173,18 @@ async function handleQrCode(code) {
         showState('result');
         startCountdown();
 
-        returnTimer = setTimeout(() => {
-            resetToIdle();
-        }, DISPLAY_DURATION);
+        returnTimer = setTimeout(resetToIdle, DISPLAY_DURATION);
 
     } catch (err) {
         console.error('[Attendance] Error verifying QR:', err);
-        showToast('Error de comunicación. Inténtalo de nuevo.');
+
+        lastScannedCode = null;
+        showMessage(
+            err instanceof SessionError
+                ? 'No se pudo validar la sesión del kiosco. Recarga la página o inicia sesión de nuevo.'
+                : 'No pudimos verificar el código. Inténtalo de nuevo.',
+            true
+        );
         resetToIdle();
     } finally {
         isProcessing = false;
@@ -207,37 +194,35 @@ async function handleQrCode(code) {
 function isValidQrFormat(code) {
     return typeof code === 'string'
         && code.length >= QR_MIN_LENGTH
-        && code.length <= 200
+        && code.length <= QR_MAX_LENGTH
         && /^[a-zA-Z0-9\-_@.]+$/.test(code);
 }
 
+function normalize(text) {
+    return String(text || '')
+        .normalize('NFD').replace(/\p{M}+/gu, '')
+        .toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
+}
+
+function planLabel(plan) {
+    const value = (plan || '').trim();
+    if (!value) return 'Sin plan';
+    return /^plan\b/i.test(value) ? value : `Plan ${value}`;
+}
+
 function renderResult(data) {
-    const status = data.status || 'NOT_FOUND';
-    const cfg    = STATUS_CONFIG[status] || STATUS_CONFIG['DENIED'];
+    const cfg = STATUS_CONFIG[data.status] || STATUS_CONFIG.DENIED;
+    document.body.dataset.state = cfg.state;
 
-    resultCard.className       = 'result-card';
-    resultAvatarRing.className = 'result-avatar-ring';
-    resultBadge.className      = 'result-status-badge';
-    resultStatusBar.className  = 'result-status-bar';
+    resultName.textContent   = data.userName || 'Usuario';
+    resultPlan.textContent   = planLabel(data.userPlan);
+    resultStatus.textContent = cfg.headline;
 
-    resultCard.classList.add(cfg.cardClass);
-    resultAvatarRing.classList.add(cfg.ringClass);
-    resultBadge.classList.add(cfg.badgeClass);
-    resultStatusBar.classList.add(cfg.barClass);
-
-    resultTopbar.style.background = cfg.topbarColor;
-
-    resultBadgeIcon.className = `bi ${cfg.badgeIcon}`;
-
-    countdownFill.style.background = cfg.fillColor;
-
-    resultName.textContent = data.userName || 'Usuario';
-
-    resultPlan.textContent = data.userPlan || 'Sin plan';
-
-    resultStatusText.textContent = data.message || '—';
+    const detail = (data.message || '').trim();
+    resultDetail.textContent = normalize(detail) === normalize(cfg.headline) ? '' : detail;
 
     const photoUrl = data.userPhoto;
+    resultPhoto.alt = data.userName || '';
     if (photoUrl && photoUrl.trim() !== '') {
         resultPhoto.src = photoUrl;
         resultPhoto.style.display = 'block';
@@ -248,28 +233,23 @@ function renderResult(data) {
             renderPhotoFallback(data.userName);
         };
     } else {
+        resultPhoto.removeAttribute('src');
         resultPhoto.style.display = 'none';
         resultPhotoFb.style.display = 'flex';
         renderPhotoFallback(data.userName);
     }
 
-    if (data.userId) {
-        resultFooterId.textContent = `ID: ${formatUserId(data.userId)}`;
-    } else {
-        resultFooterId.textContent = '';
-    }
+    resultFooterId.textContent = data.userId ? `ID ${formatUserId(data.userId)}` : '';
 
-    const now  = new Date();
-    const time = now.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true }).toUpperCase();
-    const date = now.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
-    resultFooterTime.textContent = `${date} ${time}`;
+    const now = new Date();
+    resultFooterTime.textContent = `${footerDateFormat.format(now)} · ${timeFormat.format(now)}`;
 }
 
 function renderPhotoFallback(name) {
     const initials = name
-        ? name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
-        : '?';
-    resultPhotoFb.textContent = initials;
+        ? name.split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase()
+        : '';
+    resultPhotoFb.textContent = initials || '?';
 }
 
 function formatUserId(mongoId) {
@@ -314,14 +294,15 @@ function hideCountdown() {
     countdownFill.style.transform  = 'scaleX(1)';
 }
 
-let toastTimer = null;
+let messageTimer = null;
 
-function showToast(message) {
-    kioskToast.textContent = message;
-    kioskToast.classList.add('toast--visible');
+function showMessage(text, isError) {
+    kioskMessage.textContent = text;
+    kioskMessage.classList.toggle('kiosk-message--error', Boolean(isError));
+    kioskMessage.classList.add('is-visible');
 
-    if (toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => {
-        kioskToast.classList.remove('toast--visible');
-    }, 2500);
+    clearTimeout(messageTimer);
+    messageTimer = setTimeout(() => {
+        kioskMessage.classList.remove('is-visible');
+    }, isError ? ERROR_MESSAGE_MS : MESSAGE_MS);
 }

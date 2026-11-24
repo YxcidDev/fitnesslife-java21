@@ -1,4 +1,3 @@
-console.log("UserTable.js cargado");
 document.addEventListener('DOMContentLoaded', function () {
 
     document.querySelectorAll(".btnEditar").forEach((button) => {
@@ -36,15 +35,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
             } catch (error) {
                 console.error('Error:', error);
-                alert('Error al cargar los datos del usuario');
+                FLToast.error('No se pudieron cargar los datos del usuario.');
             }
         });
     });
 
-    document.querySelectorAll('.alert').forEach(alert => {
-        setTimeout(() => {
-            const bsAlert = new bootstrap.Alert(alert);
-            bsAlert.close();
-        }, 5000);
-    });
 });

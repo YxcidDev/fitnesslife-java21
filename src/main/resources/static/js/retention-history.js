@@ -14,10 +14,7 @@
     }
 
     function showToast(message, isError) {
-        var toastEl = document.getElementById('retToast');
-        document.getElementById('retToastMsg').textContent = message;
-        toastEl.style.background = isError ? '#e74c3c' : 'var(--primary-color)';
-        bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 3500 }).show();
+        FLToast.show({ type: isError ? 'error' : 'success', message: message });
     }
 
     function errorMessage(res) {
@@ -148,8 +145,9 @@
                 stopPoll();
                 if (wasSending) {
                     wasSending = false;
-                    showToast(STATUS_LABELS[progress.dispatchStatus] + '.', progress.failed > 0);
-                    setTimeout(function () { window.location.reload(); }, 1500);
+                    FLToast.later(progress.failed > 0 ? 'warning' : 'success',
+                        STATUS_LABELS[progress.dispatchStatus] + '.');
+                    window.location.reload();
                 }
             }
             return progress;
@@ -264,8 +262,8 @@
                 stopPoll();
                 wasSending = false;
                 renderStatus(progress.dispatchStatus, progress);
-                showToast('Envío detenido.');
-                setTimeout(function () { window.location.reload(); }, 1200);
+                FLToast.later('info', 'Envío detenido.');
+                window.location.reload();
             })
             .catch(function (e) { showToast(e.message, true); })
             .finally(function () { el.cancelBtn.disabled = false; });

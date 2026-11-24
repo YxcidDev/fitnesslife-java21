@@ -19,12 +19,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    document.querySelectorAll('.alert').forEach(alert => {
-        setTimeout(() => {
-            const bsAlert = new bootstrap.Alert(alert);
-            bsAlert.close();
-        }, 5000);
-    });
 });
 
 function escapeHtml(value) {
@@ -174,9 +168,8 @@ function viewPaymentDetails(button) {
         .catch(error => {
             console.error('Error:', error);
             modalContent.innerHTML = `
-                <div class="alert alert-danger">
-                    <i class="fas fa-exclamation-circle me-2"></i>
-                    Error al cargar los detalles del pago
+                <div class="fl-notice fl-notice--error">
+                    No se pudieron cargar los detalles del pago.
                 </div>
             `;
         });

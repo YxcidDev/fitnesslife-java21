@@ -113,13 +113,14 @@
 }
 
 .retention-alert {
+    border: 1px solid rgba(211, 211, 211, 0.3);
     border-radius: 4px;
     padding: 0.9rem 1.1rem;
     margin-bottom: 1.25rem;
-    border-left: 4px solid transparent;
-    background: var(--card-bg);
+    background: rgba(255, 255, 255, 0.04);
     color: var(--text-white);
     font-size: 0.9rem;
+    line-height: 1.5;
 }
 
 .retention-alert div + div {
@@ -127,15 +128,19 @@
 }
 
 .retention-alert--error {
-    border-left-color: #e74c3c;
+    border-color: rgba(231, 76, 60, 0.5);
 }
 
 .retention-alert--warn {
-    border-left-color: #f39c12;
+    border-color: rgba(235, 102, 8, 0.55);
+}
+
+.retention-alert--success {
+    border-color: rgba(46, 204, 113, 0.45);
 }
 
 .retention-alert--info {
-    border-left-color: var(--primary-color);
+    border-color: rgba(211, 211, 211, 0.3);
 }
 
 .retention-note {

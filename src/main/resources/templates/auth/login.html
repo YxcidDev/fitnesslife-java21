@@ -33,31 +33,7 @@
               </div>
 
               <div class="actual-form">
-                <div
-                  th:if="${param.error}"
-                  class="alert alert-danger py-2 small mb-3"
-                >
-                  Correo o contraseña incorrectos.
-                </div>
-                <div
-                  th:if="${param.locked}"
-                  class="alert alert-danger py-2 small mb-3"
-                >
-                  Demasiados intentos fallidos. Tu cuenta quedó bloqueada
-                  temporalmente, inténtalo de nuevo en unos minutos.
-                </div>
-                <div
-                  th:if="${param.expired}"
-                  class="alert alert-warning py-2 small mb-3"
-                >
-                  Tu sesión expiró. Inicia sesión de nuevo.
-                </div>
-                <div
-                  th:if="${param.registered}"
-                  class="alert alert-success py-2 small mb-3"
-                >
-                  Cuenta creada correctamente. Ya puedes iniciar sesión.
-                </div>
+
                 <div class="input-wrap">
                   <input
                     type="email"
@@ -232,7 +208,6 @@
                 />
               </div>
 
-              <div id="msgEmail" class="hidden"></div>
 
               <button
                 id="btnSendOtp"
@@ -288,8 +263,6 @@
                 />
               </div>
 
-              <div id="msgOtp" class="hidden"></div>
-
               <div class="d-flex gap-2 mt-2">
                 <button
                   id="btnBackEmail"
@@ -330,6 +303,14 @@
         </div>
       </div>
     </div>
+
+    <th:block th:with="error=${param.locked != null}
+            ? 'Demasiados intentos fallidos. Tu cuenta quedó bloqueada temporalmente, inténtalo de nuevo en unos minutos.'
+            : (${param.error != null} ? 'Correo o contraseña incorrectos.' : null),
+        warning=${param.expired != null} ? 'Tu sesión expiró. Inicia sesión de nuevo.' : null,
+        success=${param.registered != null} ? 'Cuenta creada correctamente. Ya puedes iniciar sesión.' : null">
+      <div th:replace="~{fragments/toast :: toasts}"></div>
+    </th:block>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/js/login-ui.js"></script>

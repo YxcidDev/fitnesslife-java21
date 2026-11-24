@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+<th:block th:fragment="toasts">
+    <link rel="stylesheet" th:href="@{/css/toast.css}">
+    <div id="flToastFlash" hidden
+         th:attr="data-success=${success},data-error=${error},data-warning=${warning},data-info=${info}"></div>
+    <script th:src="@{/js/toast.js}"></script>
+</th:block>
+</body>
+
+</html>
