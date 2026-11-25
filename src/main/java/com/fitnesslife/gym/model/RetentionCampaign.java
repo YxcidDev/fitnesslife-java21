@@ -37,10 +37,6 @@ public class RetentionCampaign {
     private String savedBy;
     private LocalDateTime savedAt;
 
-    /**
-     * Envío de correos. Null en campañas guardadas antes de existir esta función: se interpreta
-     * como NOT_LAUNCHED (ver {@link #effectiveDispatchStatus()}).
-     */
     private RetentionDispatchStatus dispatchStatus;
     private String launchedBy;
     private LocalDateTime launchedAt;
@@ -65,14 +61,12 @@ public class RetentionCampaign {
     private List<ConstraintSnapshot> constraints;
     private List<String> messages;
 
-    /** Solo mientras status = DRAFT. */
     private List<AssignmentSnapshot> draftAssignments;
 
     public RetentionDispatchStatus effectiveDispatchStatus() {
         return dispatchStatus != null ? dispatchStatus : RetentionDispatchStatus.NOT_LAUNCHED;
     }
 
-    /** Parámetros con los que se corrió el modelo (incluye los cupos efectivamente aplicados). */
     @Data
     @Builder
     @NoArgsConstructor
@@ -121,7 +115,6 @@ public class RetentionCampaign {
         private double shadowPrice;
     }
 
-    /** Usuario y acción recomendada, tal como los dejó el modelo en el momento del cálculo. */
     @Data
     @Builder
     @NoArgsConstructor

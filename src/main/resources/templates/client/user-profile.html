@@ -20,7 +20,7 @@
         <h2 class="plan-name">
             <span th:text="${currentUser.plan != null ? currentUser.plan : 'Sin plan'}"></span>
         </h2>
-        <div class="plan-status" th:classappend="${currentUser.active} ? ' text-success' : ' text-danger'">
+        <div class="plan-status">
             <span th:text="${currentUser.active} ? 'Activo' : 'Inactivo'"></span>
         </div>
     </div>
@@ -120,15 +120,7 @@
                             </option>
                         </select>
 
-                        <div class="edit-mode form-check mt-2" style="display:none;">
-                            <input class="form-check-input" type="checkbox" name="healthDataConsent"
-                                id="healthDataConsent" value="true">
-                            <label class="form-check-label" for="healthDataConsent" style="font-size: 0.8rem;">
-                                Autorizo el tratamiento de mi dato de salud para fines de atención en caso de
-                                emergencia. Ver <a th:href="@{/legal/politica-de-privacidad}" target="_blank">Política
-                                    de Privacidad</a>.
-                            </label>
-                        </div>
+
                     </div>
                 </div>
             </div>
@@ -184,6 +176,16 @@
                             class="view-mode"></span>
                     </div>
                 </div>
+            </div>
+
+            <div class="edit-mode form-check mt-2" style="display:none;">
+                <input class="form-check-input" type="checkbox" name="healthDataConsent"
+                       id="healthDataConsent" value="true">
+                <label class="form-check-label" for="healthDataConsent" style="font-size: 0.8rem;">
+                    Autorizo el tratamiento de mi dato de salud para fines de atención en caso de
+                    emergencia. Ver <a th:href="@{/legal/privacy-policy}" target="_blank">política
+                    de privacidad</a>.
+                </label>
             </div>
 
             <div class="d-flex justify-content-center mt-3">

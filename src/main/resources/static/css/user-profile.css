@@ -227,6 +227,26 @@ body {
     display: none;
 }
 
+.form-check .form-check-input:checked {
+    background-color: var(--primary-color, #eb6608);
+    border-color: var(--primary-color, #eb6608);
+}
+
+.form-check .form-check-input:focus {
+    border-color: var(--primary-color, #eb6608);
+    box-shadow: 0 0 0 0.2rem rgba(235, 102, 8, 0.25);
+}
+
+.form-check-label a {
+    color: var(--primary-color, #eb6608);
+    text-decoration: underline;
+    transition: color 0.3s;
+}
+
+.form-check-label a:hover {
+    color: var(--hover-primary, #c75006);
+}
+
 @media (max-width: 768px) {
     .profile-background {
         padding: 1.5rem 0 3rem;

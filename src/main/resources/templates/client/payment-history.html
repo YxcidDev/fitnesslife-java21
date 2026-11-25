@@ -65,16 +65,16 @@
                             </span>
                         </div>
 
-                        <span class="payment-status" th:classappend="${payment.status == 'ACCEPTED'} ? 'status-accepted' : 
-                                             (${payment.status == 'PENDING'} ? 'status-pending' : 
-                                             (${payment.status == 'REJECTED'} ? 'status-rejected' : 
-                                             (${payment.status == 'EXPIRED'} ? 'status-expired' : 'status-failed')))"
-                            th:text="${payment.status == 'ACCEPTED'} ? 'Aceptado' : 
-                                       (${payment.status == 'PENDING'} ? 'Pendiente' : 
-                                       (${payment.status == 'REJECTED'} ? 'Rechazado' : 
-                                       (${payment.status == 'EXPIRED'} ? 'Expirado' : 'Fallido')))">
-                            Aceptado
-                        </span>
+                        <span class="payment-status"
+                              th:with="state=${payment.status != null ? payment.status.name() : ''}"
+                              th:text="${state == 'ACCEPTED'} ? 'Aceptado'
+        : (${state == 'PENDING'} ? 'Pendiente'
+        : (${state == 'REJECTED'} ? 'Rechazado'
+        : (${state == 'EXPIRED'} ? 'Expirado'
+        : (${state == 'CANCELLED'} ? 'Cancelado'
+        : (${state == 'FAILED'} ? 'Fallido' : 'Desconocido')))))">
+    Aceptado
+</span>
                     </div>
 
                 </div>
